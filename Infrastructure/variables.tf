@@ -22,4 +22,26 @@ variable "table_name" {
   type        = string
   default     = "Products"
 }
+
+variable "subscription_id" {
+  type        = string
+  description = "Azure Subscription ID"
+}
+
+variable "tenant_id" {
+  type        = string
+  description = "Azure Tenant ID"
+}
+
+variable "client_id" {
+  type        = string
+  description = "Azure Client ID (Service Principal App ID)"
+}
+
+variable "client_secret" {
+  type        = string
+  description = "Azure Client Secret (Service Principal Password)"
+  sensitive   = true
+}
+
 # End of variables.tf

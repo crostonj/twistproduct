@@ -1,7 +1,7 @@
 package com.techtwist.web;
 
 import com.azure.data.tables.models.TableEntity;
-import com.techtwist.services.ProductServce;
+import com.techtwist.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,25 +11,25 @@ import java.util.Map;
 @RequestMapping("/api/products")
 public class ProductController {
     @Autowired
-    private ProductServce productServce;
+    private ProductService productService;
 
     @PostMapping
     public void createProduct(@RequestParam String partitionKey, @RequestParam String rowKey, @RequestBody Map<String, Object> properties) {
-        productServce.createEntity(partitionKey, rowKey, properties);
+        productService.createEntity(partitionKey, rowKey, properties);
     }
 
     @GetMapping("/{partitionKey}/{rowKey}")
     public TableEntity getProduct(@PathVariable String partitionKey, @PathVariable String rowKey) {
-        return productServce.readEntity(partitionKey, rowKey);
+        return productService.readEntity(partitionKey, rowKey);
     }
 
     @PutMapping("/{partitionKey}/{rowKey}")
     public void updateProduct(@PathVariable String partitionKey, @PathVariable String rowKey, @RequestBody Map<String, Object> properties) {
-        productServce.updateEntity(partitionKey, rowKey, properties);
+        productService.updateEntity(partitionKey, rowKey, properties);
     }
 
     @DeleteMapping("/{partitionKey}/{rowKey}")
     public void deleteProduct(@PathVariable String partitionKey, @PathVariable String rowKey) {
-        productServce.deleteEntity(partitionKey, rowKey);
+        productService.deleteEntity(partitionKey, rowKey);
     }
 }

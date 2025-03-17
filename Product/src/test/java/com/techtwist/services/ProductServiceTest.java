@@ -21,7 +21,7 @@ class ProductServceTest {
     private TableClient tableClient;
 
     @InjectMocks
-    private ProductServce productServce;
+    private ProductService productServce;
 
     @BeforeEach
     void setUp() {

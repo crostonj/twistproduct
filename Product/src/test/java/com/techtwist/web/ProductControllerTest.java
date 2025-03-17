@@ -1,7 +1,7 @@
 package com.techtwist.web;
 
 import com.azure.data.tables.models.TableEntity;
-import com.techtwist.services.ProductServce;
+import com.techtwist.services.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ProductControllerTest {
 
     @Mock
-    private ProductServce productServce;
+    private ProductService productServce;
 
     @InjectMocks
     private ProductController productController;

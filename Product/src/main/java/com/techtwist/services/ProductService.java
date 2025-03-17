@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class ProductServce {
+public class ProductService {
 
     @Value("${azure.storage.account-name}")
     private String accountName;

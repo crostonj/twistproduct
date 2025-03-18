@@ -2,20 +2,26 @@ package com.techtwist.services;
 
 import com.azure.data.tables.TableClient;
 import com.azure.data.tables.models.TableEntity;
+import com.techtwist.models.Product;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-class ProductServceTest {
+@ExtendWith(MockitoExtension.class)
+class ProductServiceTest {
 
     @Mock
     private TableClient tableClient;
@@ -23,67 +29,71 @@ class ProductServceTest {
     @InjectMocks
     private ProductService productServce;
 
+    private String rowKey;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        productServce.init();
+        //mocks = MockitoAnnotations.openMocks(this);
+        rowKey = UUID.randomUUID().toString();
+    }
+
+
+    private Product createTestProduct() {
+        return new Product("Product1", 10.0, "partition1", rowKey);
     }
 
     @Test
     void testCreateEntity() {
-        String partitionKey = "partition1";
-        String rowKey = "row1";
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("name", "Product1");
 
-        productServce.createEntity(partitionKey, rowKey, properties);
+        Product product = createTestProduct();
+
+        productServce.create(product);
 
         ArgumentCaptor<TableEntity> entityCaptor = ArgumentCaptor.forClass(TableEntity.class);
         verify(tableClient, times(1)).createEntity(entityCaptor.capture());
         TableEntity capturedEntity = entityCaptor.getValue();
 
-        assertEquals(partitionKey, capturedEntity.getPartitionKey());
+        assertEquals(product.getPartitionKey(), capturedEntity.getPartitionKey());
         assertEquals(rowKey, capturedEntity.getRowKey());
-        assertEquals(properties, capturedEntity.getProperties());
+        assertEquals(productServce.productToMap(product), capturedEntity.getProperties());
     }
 
     @Test
     void testReadEntity() {
-        String partitionKey = "partition1";
-        String rowKey = "row1";
-        TableEntity expectedEntity = new TableEntity(partitionKey, rowKey);
-        when(tableClient.getEntity(partitionKey, rowKey)).thenReturn(expectedEntity);
+        Product product = createTestProduct();
 
-        TableEntity actualEntity = productServce.readEntity(partitionKey, rowKey);
+        TableEntity expectedEntity = new TableEntity(product.getPartitionKey(), rowKey);
+        when(tableClient.getEntity(product.getPartitionKey(), rowKey)).thenReturn(expectedEntity);
+        Product expectedProduct = productServce.mapToProduct(expectedEntity);
 
-        assertEquals(expectedEntity, actualEntity);
+        Product productActual = productServce.get(product.getPartitionKey(), rowKey);
+
+        assertEquals(expectedProduct, productActual);
     }
 
     @Test
     void testUpdateEntity() {
-        String partitionKey = "partition1";
-        String rowKey = "row1";
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("name", "UpdatedProduct");
+        Product product = createTestProduct();
+        product.setName("UpdatedProduct");
 
-        productServce.updateEntity(partitionKey, rowKey, properties);
+
+        productServce.update(product);
 
         ArgumentCaptor<TableEntity> entityCaptor = ArgumentCaptor.forClass(TableEntity.class);
         verify(tableClient, times(1)).updateEntity(entityCaptor.capture());
         TableEntity capturedEntity = entityCaptor.getValue();
 
-        assertEquals(partitionKey, capturedEntity.getPartitionKey());
+        assertEquals(product.getPartitionKey(), capturedEntity.getPartitionKey());
         assertEquals(rowKey, capturedEntity.getRowKey());
-        assertEquals(properties, capturedEntity.getProperties());
+        assertEquals(productServce.productToMap(product), capturedEntity.getProperties());
     }
 
     @Test
     void testDeleteEntity() {
-        String partitionKey = "partition1";
-        String rowKey = "row1";
+        Product product = createTestProduct();
 
-        productServce.deleteEntity(partitionKey, rowKey);
+        productServce.delete(product);
 
-        verify(tableClient, times(1)).deleteEntity(partitionKey, rowKey);
+        verify(tableClient, times(1)).deleteEntity(product.getPartitionKey(), product.getRowKey());
     }
 }

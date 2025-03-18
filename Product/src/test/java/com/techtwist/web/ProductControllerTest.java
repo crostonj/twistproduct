@@ -1,94 +1,141 @@
 package com.techtwist.web;
 
 import com.azure.data.tables.models.TableEntity;
+import com.techtwist.models.Product;
 import com.techtwist.services.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class ProductControllerTest {
 
+    private MockMvc mockMvc;
+
     @Mock
-    private ProductService productServce;
+    private ProductService productService;
 
     @InjectMocks
     private ProductController productController;
 
-    private MockMvc mockMvc;
+    private String rowKey;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(productController).build();
+
+        try (AutoCloseable closeable = MockitoAnnotations.openMocks(this)) {
+            mockMvc = MockMvcBuilders.standaloneSetup(productController).build();
+            rowKey = UUID.randomUUID().toString();
+        } catch (Exception e) {
+            // Handle exceptions during setup
+            e.printStackTrace(); // Or log the exception
+        }
+    }
+
+    private Product createTestProduct() {
+        return new Product("Product1", 10.0, "partition1", rowKey);
     }
 
     @Test
     void testCreateProduct() throws Exception {
-        String partitionKey = "partition1";
-        String rowKey = "row1";
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("name", "Product1");
+        // Given
+        Product product = createTestProduct();
 
+        // Mocking the service call if needed (optional, depending on implementation)
+        doNothing().when(productService).create(any(Product.class));
+
+        // When
         mockMvc.perform(post("/api/products")
-                        .param("partitionKey", partitionKey)
-                        .param("rowKey", rowKey)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Product1\"}"))
+                        .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
+                                product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
                 .andExpect(status().isOk());
 
-        verify(productServce, times(1)).createEntity(partitionKey, rowKey, properties);
+        // Then
+        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
+        verify(productService, times(1)).create(productCaptor.capture());
+
+        Product capturedProduct = productCaptor.getValue();
+        assertEquals(product.getName(), capturedProduct.getName());
+        assertEquals(product.getPrice(), capturedProduct.getPrice());
+        assertEquals(product.getPartitionKey(), capturedProduct.getPartitionKey());
+        assertEquals(product.getRowKey(), capturedProduct.getRowKey());
     }
 
     @Test
     void testGetProduct() throws Exception {
-        String partitionKey = "partition1";
-        String rowKey = "row1";
-        TableEntity expectedEntity = new TableEntity(partitionKey, rowKey);
-        when(productServce.readEntity(partitionKey, rowKey)).thenReturn(expectedEntity);
+        Product product = createTestProduct();
 
-        mockMvc.perform(get("/api/products/{partitionKey}/{rowKey}", partitionKey, rowKey))
+        when(productService.get(product.getPartitionKey(), product.getRowKey())).thenReturn(product);
+
+        mockMvc.perform(get("/api/products/{partitionKey}/{rowKey}", product.getPartitionKey(), product.getRowKey())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.partitionKey").value(partitionKey))
-                .andExpect(jsonPath("$.rowKey").value(rowKey));
+                .andExpect(jsonPath("$.partitionKey").value(product.getPartitionKey()))
+                .andExpect(jsonPath("$.rowKey").value(product.getRowKey()))
+                .andExpect(jsonPath("$.name").value(product.getName()))
+                .andExpect(jsonPath("$.price").value(product.getPrice()));
 
-        verify(productServce, times(1)).readEntity(partitionKey, rowKey);
+        verify(productService, times(1)).get(product.getPartitionKey(), product.getRowKey());
     }
 
     @Test
-    void testUpdateProduct() throws Exception {
-        String partitionKey = "partition1";
-        String rowKey = "row1";
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("name", "UpdatedProduct");
+    void testInsertAndUpdateProduct() throws Exception {
+        Product product = createTestProduct();
 
-        mockMvc.perform(put("/api/products/{partitionKey}/{rowKey}", partitionKey, rowKey)
+
+        // Insert the product
+        mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"UpdatedProduct\"}"))
+                        .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
+                                product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
                 .andExpect(status().isOk());
 
-        verify(productServce, times(1)).updateEntity(partitionKey, rowKey, properties);
+        // Update the product
+        product.setName("UpdatedProduct");
+        mockMvc.perform(put("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
+                                product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
+                .andExpect(status().isOk());
+
+        verify(productService, times(1)).update(product);
     }
 
     @Test
-    void testDeleteProduct() throws Exception {
-        String partitionKey = "partition1";
-        String rowKey = "row1";
+    void testInsertAndDeleteProduct() throws Exception {
+        Product product = createTestProduct();
 
-        mockMvc.perform(delete("/api/products/{partitionKey}/{rowKey}", partitionKey, rowKey))
+        // Insert the product first to ensure it exists before deletion
+        mockMvc.perform(post("/api/products")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
+                                product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
                 .andExpect(status().isOk());
 
-        verify(productServce, times(1)).deleteEntity(partitionKey, rowKey);
+
+        // Delete the product
+        mockMvc.perform(delete("/api/products", product.getPartitionKey(), product.getRowKey())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
+                        product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
+                .andExpect(status().isOk());
+
+        verify(productService, times(1)).delete(product);
     }
 }

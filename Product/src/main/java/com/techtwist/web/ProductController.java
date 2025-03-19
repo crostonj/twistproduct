@@ -45,6 +45,23 @@ public class ProductController {
         }
     }
 
+    //get product ny name
+    @GetMapping(value = "/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Product> getByName(
+            @PathVariable String name) {
+        try {
+            Product product = productService.getByName(name);
+            if (product == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(product);
+        } catch (Exception e) {
+            e.printStackTrace(); // Or use a logging framework
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to read entity", e);
+        }
+    }
+
+
     @PutMapping
     public ResponseEntity<Product> update(@RequestBody Product product) {
         try {

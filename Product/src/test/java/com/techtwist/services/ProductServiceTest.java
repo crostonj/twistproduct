@@ -63,6 +63,8 @@ class ProductServiceTest {
         Product product = createTestProduct();
 
         TableEntity expectedEntity = new TableEntity(product.getPartitionKey(), rowKey);
+        expectedEntity.addProperty("name", product.getName());
+        expectedEntity.addProperty("price", product.getPrice());
         when(tableClient.getEntity(product.getPartitionKey(), rowKey)).thenReturn(expectedEntity);
         Product expectedProduct = productServce.mapToProduct(expectedEntity);
 

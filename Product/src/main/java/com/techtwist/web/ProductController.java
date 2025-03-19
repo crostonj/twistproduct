@@ -1,6 +1,5 @@
 package com.techtwist.web;
 
-import com.azure.data.tables.models.TableEntity;
 import com.techtwist.models.Product;
 import com.techtwist.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -63,7 +59,7 @@ public class ProductController {
         }
     }
 
-    @DeleteMapping("/{partitionKey}/{rowKey}")
+    @DeleteMapping
     public void delete(@RequestBody Product product) {
         try {
             // Validate the product before deletion
@@ -78,21 +74,5 @@ public class ProductController {
         }
 
     }
-
-    private Product convertTableEntityToProduct(TableEntity tableEntity) {
-        Product product = new Product();
-        product.setPartitionKey(tableEntity.getPartitionKey());
-        product.setRowKey(tableEntity.getRowKey());
-        // Map other properties from TableEntity to Product
-        if(tableEntity.getProperties().containsKey("name")){
-            product.setName(tableEntity.getProperties().get("name").toString());
-        }
-        if(tableEntity.getProperties().containsKey("price")){
-            product.setPrice(Double.parseDouble(tableEntity.getProperties().get("price").toString()));
-        }
-
-        return product;
-    }
-
 
 }

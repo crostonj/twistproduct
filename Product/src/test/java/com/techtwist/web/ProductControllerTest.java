@@ -1,6 +1,6 @@
 package com.techtwist.web;
 
-import com.azure.data.tables.models.TableEntity;
+
 import com.techtwist.models.Product;
 import com.techtwist.services.ProductService;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,13 +9,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,8 +53,8 @@ class ProductControllerTest {
         // Given
         Product product = createTestProduct();
 
-        // Mocking the service call if needed (optional, depending on implementation)
-        doNothing().when(productService).create(any(Product.class));
+        // Mocking the service call
+        when(productService.create(any(Product.class))).thenReturn(null); // Adjust return value if needed
 
         // When
         mockMvc.perform(post("/api/products")

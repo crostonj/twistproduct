@@ -34,8 +34,6 @@ public class ProductService {
                 .buildClient();
     }
 
-    //DefaultEndpointsProtocol=https;AccountName=techtwistdatastorage;AccountKey=G7/MxzI80Yj6ta6CEdYL/wYt7xHLRLvnP4LIm+WuhAnS/v2HXvZuqk1S8q4R9U2cuFDj2ahuFDo0+AStW7tYLg==;EndpointSuffix=core.windows.net
-
     public Product create(Product product) {
         try {
             TableEntity entity = new TableEntity(product.getPartitionKey(), product.getRowKey()).setProperties(productToMap(product));

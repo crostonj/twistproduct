@@ -1,6 +1,5 @@
 package com.techtwist.web;
 
-
 import com.techtwist.models.Product;
 import com.techtwist.services.ProductService;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +15,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -57,10 +57,9 @@ class ProductControllerTest {
         when(productService.create(any(Product.class))).thenReturn(null); // Adjust return value if needed
 
         // When
-        mockMvc.perform(post("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
-                                product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
+        mockMvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON)
+                .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
+                        product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
                 .andExpect(status().isOk());
 
         // Then
@@ -81,8 +80,7 @@ class ProductControllerTest {
         when(productService.get(product.getPartitionKey(), product.getRowKey())).thenReturn(product);
 
         mockMvc.perform(get("/api/products/{partitionKey}/{rowKey}", product.getPartitionKey(), product.getRowKey())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+                .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.partitionKey").value(product.getPartitionKey()))
                 .andExpect(jsonPath("$.rowKey").value(product.getRowKey()))
                 .andExpect(jsonPath("$.name").value(product.getName()))
@@ -92,23 +90,44 @@ class ProductControllerTest {
     }
 
     @Test
+    void testGetByName() throws Exception {
+        // Arrange
+        Product product = new Product("MoneyIn", 100.0, "partition1", "row1");
+        when(productService.getByName("MoneyIn")).thenReturn(product);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/products/MoneyIn").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.name").value("MoneyIn")).andExpect(jsonPath("$.price").value(100.0))
+                .andExpect(jsonPath("$.partitionKey").value("partition1"))
+                .andExpect(jsonPath("$.rowKey").value("row1"));
+    }
+
+    @Test
+    void testGetByName_NotFound() throws Exception {
+        // Arrange
+        when(productService.getByName("NonExistent")).thenReturn(null);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/products/NonExistent").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void testInsertAndUpdateProduct() throws Exception {
         Product product = createTestProduct();
 
-
         // Insert the product
-        mockMvc.perform(post("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
-                                product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
+        mockMvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON)
+                .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
+                        product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
                 .andExpect(status().isOk());
 
         // Update the product
         product.setName("UpdatedProduct");
-        mockMvc.perform(put("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
-                                product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
+        mockMvc.perform(put("/api/products").contentType(MediaType.APPLICATION_JSON)
+                .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
+                        product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
                 .andExpect(status().isOk());
 
         verify(productService, times(1)).update(product);
@@ -119,17 +138,15 @@ class ProductControllerTest {
         Product product = createTestProduct();
 
         // Insert the product first to ensure it exists before deletion
-        mockMvc.perform(post("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
-                                product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
+        mockMvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON)
+                .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
+                        product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
                 .andExpect(status().isOk());
-
 
         // Delete the product
         mockMvc.perform(delete("/api/products", product.getPartitionKey(), product.getRowKey())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
                         product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
                 .andExpect(status().isOk());
 

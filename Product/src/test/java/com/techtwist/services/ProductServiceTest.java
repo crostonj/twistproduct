@@ -1,5 +1,6 @@
 package com.techtwist.services;
 
+import com.azure.core.http.rest.PagedIterable;
 import com.azure.data.tables.TableClient;
 import com.azure.data.tables.models.TableEntity;
 import com.techtwist.models.Product;
@@ -11,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,6 +54,39 @@ class ProductServiceTest {
         assertEquals(product.getPartitionKey(), capturedEntity.getPartitionKey());
         assertEquals(rowKey, capturedEntity.getRowKey());
         assertEquals(productServce.productToMap(product), capturedEntity.getProperties());
+    }
+
+    @Test
+    void testGetByName() {
+    // Arrange
+        Product product = createTestProduct();
+        product.setName("MoneyIn");
+
+        TableEntity matchingEntity = new TableEntity(product.getPartitionKey(), product.getRowKey());
+        matchingEntity.addProperty("name", product.getName());
+        matchingEntity.addProperty("price", product.getPrice());
+
+        TableEntity nonMatchingEntity = new TableEntity("otherPartition", "otherRow");
+        nonMatchingEntity.addProperty("name", "OtherProduct");
+        nonMatchingEntity.addProperty("price", 20.0);
+
+        // Act
+        // Mock PagedIterable
+        @SuppressWarnings("unchecked")
+        PagedIterable<TableEntity> pagedIterable = mock(PagedIterable.class);
+        when(pagedIterable.iterator()).thenReturn(List.of(matchingEntity, nonMatchingEntity).iterator());
+        when(tableClient.listEntities()).thenReturn(pagedIterable);
+
+        //when(tableClient.getEntity(product.getPartitionKey(), product.getRowKey())).thenReturn(expectedEntity);
+
+        Product productActual = productServce.getByName("MoneyIn");
+
+
+        // Assert
+        assertEquals(product.getName(), productActual.getName());
+        assertEquals(product.getPrice(), productActual.getPrice());
+        assertEquals(product.getPartitionKey(), productActual.getPartitionKey());
+        assertEquals(product.getRowKey(), productActual.getRowKey());
     }
 
     @Test

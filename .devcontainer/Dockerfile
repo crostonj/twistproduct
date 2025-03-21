@@ -17,6 +17,8 @@ RUN mv target/*.war /usr/local/tomcat/webapps/ROOT.war
 
 # Expose Tomcat's port
 EXPOSE 8080
+EXPOSE 5005
+ENV JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n"
 
 # Start Tomcat
 CMD ["catalina.sh", "run"]

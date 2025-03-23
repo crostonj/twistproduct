@@ -1,8 +1,0 @@
-{
-    "name": "Struts Tomcat Codespace",
-    "build": {
-        "dockerfile": "Dockerfile"
-    },
-    "forwardPorts": [8080, 5005],
-    "workspaceFolder": "/workspace/basic-struts"
-}

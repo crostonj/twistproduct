@@ -1,4 +1,5 @@
-package com.techtwist.web;
+package com.techtwist.controllers;
+
 
 import com.techtwist.models.Product;
 import com.techtwist.services.ProductService;

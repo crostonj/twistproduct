@@ -3,7 +3,6 @@ package com.techtwist.services;
 import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableClientBuilder;
 import com.azure.data.tables.models.TableEntity;
-import com.techtwist.config.EnvConfig;
 import com.techtwist.models.Product;
 import org.springframework.stereotype.Service;
 

@@ -15,7 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up environment variables
-      run: echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+      run: echo "IMAGE_TAG=crostonj/techtwist-product:latest" >> $GITHUB_ENV
 
     - name: Build the Docker image
       run: docker build ./Product --file ./Product/Dockerfile --tag ${{ env.IMAGE_TAG }}

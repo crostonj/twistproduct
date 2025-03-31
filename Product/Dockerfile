@@ -1,4 +1,4 @@
-FROM openjdk:21.04-slim
+FROM openjdk:21-slim
 
 # Set the working directory in the container
 WORKDIR /app
@@ -13,5 +13,5 @@ COPY src ./src
 RUN ["mvn", "clean", "package"]
 
 # Specify the command to run the application
-CMD ["java", "-jar", "target/Product-1.0.jar"] 
+CMD ["java", "-jar", "target/Product-1.0.jar"]
 

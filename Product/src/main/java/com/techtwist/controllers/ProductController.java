@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/product")
 public class ProductController {
     @Autowired
     private ProductService productService;
@@ -94,6 +94,9 @@ public class ProductController {
         }
     }
 
+    @Operation(summary = "Delete a product", 
+                description = "Delete a product")
+    @RequestBody(description = "The product to delete", required = true)
     @DeleteMapping
     public void delete(@RequestBody Product product) {
         try {
@@ -107,7 +110,6 @@ public class ProductController {
             e.printStackTrace(); // Or use a logging framework
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete product", e);
         }
-
     }
 
 }

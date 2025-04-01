@@ -2,6 +2,11 @@ package com.techtwist.controllers;
 
 import com.techtwist.models.Product;
 import com.techtwist.services.ProductService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +20,9 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    @Operation(summary = "Create a new product", 
+                description = "Create a new product")
+    @RequestBody(description = "The product to create", required = true)
     @PostMapping
     public ResponseEntity<Product> create(@RequestBody Product product) {
         try {
@@ -29,6 +37,11 @@ public class ProductController {
         }
     }
 
+    //need openapi decorators
+    @Operation(summary = "Get a product by partitionKey and rowKey", 
+                description = "Get a product by partitionKey and rowKey")
+    @Parameter(name = "partitionKey", description = "The partition key of the product")
+    @Parameter(name = "rowKey", description = "The row key of the product")
     @GetMapping(value = "/{partitionKey}/{rowKey}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Product> get(
             @PathVariable String partitionKey,
@@ -46,6 +59,9 @@ public class ProductController {
     }
 
     //get product ny name
+    @Operation(summary = "Get a product by name", 
+                description = "Get a product by name")
+    @Parameter(name = "name", description = "The name of the product")
     @GetMapping(value = "/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Product> getByName(
             @PathVariable String name) {
@@ -61,7 +77,9 @@ public class ProductController {
         }
     }
 
-
+    @Operation(summary = "Update a product", 
+                description = "Update a product")
+    @Parameter(name = "product", description = "The product to update")
     @PutMapping
     public ResponseEntity<Product> update(@RequestBody Product product) {
         try {

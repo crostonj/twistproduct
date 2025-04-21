@@ -1,48 +1,46 @@
 package com.techtwist.controllers;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techtwist.models.Product;
 import com.techtwist.services.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@WebMvcTest(controllers = ProductController.class) // Explicitly specify the controller
 class ProductControllerTest {
 
     private MockMvc mockMvc;
 
-    @Mock
-    private ProductService productService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    @InjectMocks
-    private ProductController productController;
+    @MockBean
+    private ProductService productService; // Use @MockBean to provide a mock in the application context
+
+    @Autowired
+    private ProductController productController; // Autowire the controller from the Spring context
 
     private String rowKey;
 
     @BeforeEach
     void setUp() {
-
-        try (AutoCloseable closeable = MockitoAnnotations.openMocks(this)) {
-            mockMvc = MockMvcBuilders.standaloneSetup(productController).build();
-            rowKey = UUID.randomUUID().toString();
-        } catch (Exception e) {
-            // Handle exceptions during setup
-            e.printStackTrace(); // Or log the exception
-        }
+        mockMvc = MockMvcBuilders.standaloneSetup(productController).build(); // Use the autowired controller
+        rowKey = UUID.randomUUID().toString();
     }
 
     private Product createTestProduct() {
@@ -50,42 +48,40 @@ class ProductControllerTest {
     }
 
     @Test
-    void testCreateProduct() throws Exception {
-        // Given
+    public void testCreateProduct() throws Exception {
         Product product = createTestProduct();
 
-        // Mocking the service call
-        when(productService.create(any(Product.class))).thenReturn(null); // Adjust return value if needed
+        // Ensure the mock returns a valid Product object
+        Mockito.when(productService.create(Mockito.any())).thenReturn(product);
 
-        // When
-        mockMvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON)
-                .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
-                        product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
-                .andExpect(status().isOk());
-
-        // Then
-        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
-        verify(productService, times(1)).create(productCaptor.capture());
-
-        Product capturedProduct = productCaptor.getValue();
-        assertEquals(product.getName(), capturedProduct.getName());
-        assertEquals(product.getPrice(), capturedProduct.getPrice());
-        assertEquals(product.getPartitionKey(), capturedProduct.getPartitionKey());
-        assertEquals(product.getRowKey(), capturedProduct.getRowKey());
+        mockMvc.perform(post("/product")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON) // Specify the expected response type
+                .content(objectMapper.writeValueAsString(product)))
+            .andDo(result -> System.out.println("Response: " + result.getResponse().getContentAsString())) // Log response
+            .andExpect(status().isOk())
+            .andDo(result -> System.out.println(result.getResponse().getContentAsString())) // Log response
+            .andExpect(jsonPath("$.partitionKey").value(product.getPartitionKey())) // Verify JSON object properties
+            .andExpect(jsonPath("$.rowKey").value(product.getRowKey()))
+            .andExpect(jsonPath("$.name").value(product.getName()))
+            .andExpect(jsonPath("$.price").value(product.getPrice()));
     }
 
     @Test
     void testGetProduct() throws Exception {
         Product product = createTestProduct();
 
+        // Ensure the mock returns a valid Product object
         when(productService.get(product.getPartitionKey(), product.getRowKey())).thenReturn(product);
 
-        mockMvc.perform(get("/api/products/{partitionKey}/{rowKey}", product.getPartitionKey(), product.getRowKey())
-                .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.partitionKey").value(product.getPartitionKey()))
-                .andExpect(jsonPath("$.rowKey").value(product.getRowKey()))
-                .andExpect(jsonPath("$.name").value(product.getName()))
-                .andExpect(jsonPath("$.price").value(product.getPrice()));
+        mockMvc.perform(get("/product/{partitionKey}/{rowKey}", product.getPartitionKey(), product.getRowKey())
+                .contentType(MediaType.APPLICATION_JSON))
+            .andDo(result -> System.out.println("Response: " + result.getResponse().getContentAsString())) // Log response
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.partitionKey").value(product.getPartitionKey())) // Verify JSON object properties
+            .andExpect(jsonPath("$.rowKey").value(product.getRowKey()))
+            .andExpect(jsonPath("$.name").value(product.getName()))
+            .andExpect(jsonPath("$.price").value(product.getPrice()));
 
         verify(productService, times(1)).get(product.getPartitionKey(), product.getRowKey());
     }
@@ -97,7 +93,7 @@ class ProductControllerTest {
         when(productService.getByName("MoneyIn")).thenReturn(product);
 
         // Act & Assert
-        mockMvc.perform(get("/api/products/MoneyIn").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+        mockMvc.perform(get("/product/MoneyIn").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.name").value("MoneyIn")).andExpect(jsonPath("$.price").value(100.0))
                 .andExpect(jsonPath("$.partitionKey").value("partition1"))
@@ -119,14 +115,14 @@ class ProductControllerTest {
         Product product = createTestProduct();
 
         // Insert the product
-        mockMvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/product").contentType(MediaType.APPLICATION_JSON)
                 .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
                         product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
                 .andExpect(status().isOk());
 
         // Update the product
         product.setName("UpdatedProduct");
-        mockMvc.perform(put("/api/products").contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/product").contentType(MediaType.APPLICATION_JSON)
                 .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
                         product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
                 .andExpect(status().isOk());
@@ -139,13 +135,15 @@ class ProductControllerTest {
         Product product = createTestProduct();
 
         // Insert the product first to ensure it exists before deletion
-        mockMvc.perform(post("/api/products").contentType(MediaType.APPLICATION_JSON)
-                .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
-                        product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
+        mockMvc.perform(post("/product")
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_JSON) // Specify the expected response type
+        .content(objectMapper.writeValueAsString(product)))
+                .andDo(result -> System.out.println("Response: " + result.getResponse().getContentAsString())) // Log response
                 .andExpect(status().isOk());
 
         // Delete the product
-        mockMvc.perform(delete("/api/products", product.getPartitionKey(), product.getRowKey())
+        mockMvc.perform(delete("/product", product.getPartitionKey(), product.getRowKey())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
                         product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))

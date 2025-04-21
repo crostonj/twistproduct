@@ -33,7 +33,7 @@ jobs:
       with:
         context: ./Product
         push: true
-        tags: crostonj/product:raspberry-pi
+        tags: crostonj/techtwist-product:raspberry-pi
         platforms: linux/arm64
 
     - name: Build and push image for Intel-based computers (AMD)
@@ -41,7 +41,7 @@ jobs:
       with:
         context: ./Product
         push: true
-        tags: crostonj/product:intel
+        tags: crostonj/techtwist-product:intel
         platforms: linux/amd64
 
     - name: Log out from Docker Hub

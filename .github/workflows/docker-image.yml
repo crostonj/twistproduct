@@ -32,7 +32,6 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./Product
-        file: Dockerfile
         push: true
         tags: crostonj/product:raspberry-pi
         platforms: linux/arm64
@@ -40,8 +39,7 @@ jobs:
     - name: Build and push image for Intel-based computers (AMD)
       uses: docker/build-push-action@v5
       with:
-        context: ./Product  
-        file: Dockerfile
+        context: ./Product
         push: true
         tags: crostonj/product:intel
         platforms: linux/amd64

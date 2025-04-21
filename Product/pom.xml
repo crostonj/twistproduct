@@ -27,7 +27,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-            <version>3.4.4</version>
+            <version>${spring.boot.version}</version>
         </dependency>
 
         <dependency>
@@ -89,17 +89,15 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
             </plugin>
-            <plugin>
+           <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                    <configuration>
+                <version>3.14.0</version>
+                <configuration>
+                    <release>${java.version}</release>
                     <compilerArgs>
                         <arg>-parameters</arg>
                     </compilerArgs>
-                    <parameters>true</parameters>
-                    <source>17</source> 
-                    <target>17</target> 
                 </configuration>
             </plugin>
         </plugins>

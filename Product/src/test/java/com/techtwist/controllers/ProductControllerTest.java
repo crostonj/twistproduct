@@ -3,7 +3,7 @@ package com.techtwist.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techtwist.models.Product;
-import com.techtwist.services.ProductService;
+import com.techtwist.services.TableProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -30,7 +30,7 @@ class ProductControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private ProductService productService; // Use @MockBean to provide a mock in the application context
+    private TableProductService productService; // Use @MockBean to provide a mock in the application context
 
     @Autowired
     private ProductController productController; // Autowire the controller from the Spring context
@@ -44,7 +44,7 @@ class ProductControllerTest {
     }
 
     private Product createTestProduct() {
-        return new Product("Product1", 10.0, "partition1", rowKey);
+        return new Product("Product1", 10.0, "Product Description", "partition1", rowKey);
     }
 
     @Test
@@ -89,7 +89,7 @@ class ProductControllerTest {
     @Test
     void testGetByName() throws Exception {
         // Arrange
-        Product product = new Product("MoneyIn", 100.0, "partition1", "row1");
+        Product product = new Product("MoneyIn", 100.0, "Product Description","partition1", "row1");
         when(productService.getByName("MoneyIn")).thenReturn(product);
 
         // Act & Assert

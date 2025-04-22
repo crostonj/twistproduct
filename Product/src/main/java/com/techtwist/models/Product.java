@@ -17,6 +17,9 @@ public class Product {
     @JsonProperty("price")
     private double price;
 
+    @JsonProperty("description")
+    private String description;
+
     @JsonProperty("partitionKey")
     private String partitionKey;
     

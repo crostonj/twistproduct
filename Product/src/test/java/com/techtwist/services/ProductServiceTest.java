@@ -25,7 +25,7 @@ class ProductServiceTest {
     private TableClient tableClient;
 
     @InjectMocks
-    private ProductService productServce;
+    private TableProductService productServce;
 
     private String rowKey;
 
@@ -37,7 +37,7 @@ class ProductServiceTest {
 
 
     private Product createTestProduct() {
-        return new Product("Product1", 10.0, "partition1", rowKey);
+        return new Product("Product1", 10.0, "Product Description", "partition1", rowKey);
     }
 
     @Test

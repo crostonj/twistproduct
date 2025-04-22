@@ -4,6 +4,8 @@ import com.azure.data.tables.TableClient;
 import com.azure.data.tables.TableClientBuilder;
 import com.azure.data.tables.models.TableEntity;
 import com.techtwist.models.Product;
+import com.techtwist.services.interfaces.IProductService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -11,7 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class ProductService {
+@Qualifier("tableProductService")
+public class TableProductService implements IProductService {
 
 
    // private final String accountName = EnvConfig.get("azure.storage.accountName");

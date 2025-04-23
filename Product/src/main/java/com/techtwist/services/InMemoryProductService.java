@@ -53,6 +53,10 @@ public class InMemoryProductService implements IProductService {
         productStore.remove(key);
     }
 
+    public Map<String, Product> getProductStore() {
+        return productStore; // Expose internal store for testing
+    }
+
     private String generateKey(String partitionKey, String rowKey) {
         return partitionKey + ":" + rowKey;
     }

@@ -6,14 +6,15 @@ import com.azure.data.tables.models.TableEntity;
 import com.techtwist.models.Product;
 import com.techtwist.services.interfaces.IProductService;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
-@Service
-//@Qualifier("tableProductService")
+@Service("TableProductService") // Matches the value in application.properties
+@ConditionalOnProperty(name = "service.tableProductService.enabled", havingValue = "true", matchIfMissing = true)
 public class TableProductService implements IProductService {
 
 

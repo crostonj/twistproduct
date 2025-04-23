@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-@Qualifier("tableProductService")
+//@Qualifier("tableProductService")
 public class TableProductService implements IProductService {
 
 

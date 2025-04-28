@@ -73,4 +73,12 @@ public class InMemoryProductService implements IProductService {
             create(product);
         }
     }
+
+    @Override
+    public java.util.List<Product> List() {
+        return new java.util.ArrayList<>(productStore.values());
+    }
+
+    //List override
+    
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service("TableProductService") // Matches the value in application.properties
@@ -110,5 +111,13 @@ public class TableProductService implements IProductService {
             product.setPrice(0.0); // Default value or handle as needed
         }
         return product;
+    }
+
+    @Override
+    public List<Product> List() {
+
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'List'");
+
     }
 }

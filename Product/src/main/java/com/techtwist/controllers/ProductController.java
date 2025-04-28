@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.PostConstruct;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/product")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -133,4 +135,19 @@ public class ProductController {
         }
     }
 
+    @Operation(summary = "List all products", 
+                description = "Retrieve a list of all products")
+    @GetMapping(value = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Product>> listAll() {
+        try {
+            List<Product> products = productService.List();
+            if (products.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            logger.error("Error retrieving product list", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve product list", e);
+        }
+    }
 }

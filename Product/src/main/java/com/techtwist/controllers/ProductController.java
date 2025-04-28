@@ -5,6 +5,7 @@ import com.techtwist.services.interfaces.IProductService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,8 @@ import jakarta.annotation.PostConstruct;
 
 @RestController
 @RequestMapping("/product")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@Tag(name = "Product", description = "Product API")
 public class ProductController {
     private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 

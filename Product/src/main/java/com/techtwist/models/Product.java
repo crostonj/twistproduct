@@ -31,6 +31,7 @@ public class Product {
 
     @JsonProperty("brand")
     private String brand;
+    
     @JsonProperty("partitionKey")
     private String partitionKey;
     

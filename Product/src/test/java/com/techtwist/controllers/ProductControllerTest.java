@@ -47,7 +47,7 @@ class ProductControllerTest {
     }
 
     private Product createTestProduct() {
-        return new Product(1, "Product1", 10.0, "Product Description", "partition1", rowKey);
+        return new Product(1, "Product1", 10.0, "Product Description", "imugeurl", "category", "brand", rowKey, "partitionKey");
     }
 
     @Test
@@ -86,7 +86,7 @@ class ProductControllerTest {
 
     @Test
     void testGetByName() throws Exception {
-        Product product = new Product(1, "MoneyIn", 100.0, "Product Description", "partition1", "row1");
+        Product product = new Product(1, "MoneyIn", 10.0, "Product Description", "imugeurl", "category", "brand", "partitionKey", rowKey);
         productServiceTestHelper.addProduct(product); // Use the helper to add the product to the in-memory store
 
 
@@ -94,9 +94,9 @@ class ProductControllerTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.name").value("MoneyIn"))
-            .andExpect(jsonPath("$.price").value(100.0))
-            .andExpect(jsonPath("$.partitionKey").value("partition1"))
-            .andExpect(jsonPath("$.rowKey").value("row1"));
+            .andExpect(jsonPath("$.price").value(10.0))
+            .andExpect(jsonPath("$.partitionKey").value("partitionKey"))
+            .andExpect(jsonPath("$.rowKey").value(rowKey));
     }
 
     @Test

@@ -23,6 +23,14 @@ public class Product {
     @JsonProperty("description")
     private String description;
 
+    @JsonProperty("imageUrl")
+    private String imageUrl;
+    
+    @JsonProperty("category")   
+    private String category;
+
+    @JsonProperty("brand")
+    private String brand;
     @JsonProperty("partitionKey")
     private String partitionKey;
     

@@ -69,6 +69,9 @@ public class InMemoryProductService implements IProductService {
             product.setPartitionKey("partition" + i);
             product.setRowKey("row" + i);
             product.setName("Product" + i);
+            product.setImageUrl("../assets/ttp" + i + ".png");
+            product.setCategory("Category" + i);
+            product.setBrand("Brand" + i);
             product.setDescription("Description for Product " + i);
             product.setPrice(10.0 * i);
             create(product);

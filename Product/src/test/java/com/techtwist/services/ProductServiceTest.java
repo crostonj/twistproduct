@@ -37,7 +37,7 @@ class ProductServiceTest {
 
 
     private Product createTestProduct() {
-        return new Product("Product1", 10.0, "Product Description", "partition1", rowKey);
+        return new Product(1, "Product1", 10.0, "Product Description", "partition1", rowKey);
     }
 
     @Test

@@ -47,7 +47,7 @@ class ProductControllerTest {
     }
 
     private Product createTestProduct() {
-        return new Product("Product1", 10.0, "Product Description", "partition1", rowKey);
+        return new Product(1, "Product1", 10.0, "Product Description", "partition1", rowKey);
     }
 
     @Test
@@ -86,7 +86,7 @@ class ProductControllerTest {
 
     @Test
     void testGetByName() throws Exception {
-        Product product = new Product("MoneyIn", 100.0, "Product Description", "partition1", "row1");
+        Product product = new Product(1, "MoneyIn", 100.0, "Product Description", "partition1", "row1");
         productServiceTestHelper.addProduct(product); // Use the helper to add the product to the in-memory store
 
 

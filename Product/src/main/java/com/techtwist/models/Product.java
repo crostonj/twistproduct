@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
+    @JsonProperty("id")
+    private Integer id;
+
     @JsonProperty("name")
     private String name;
 

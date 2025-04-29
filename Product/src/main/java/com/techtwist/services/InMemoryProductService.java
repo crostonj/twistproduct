@@ -65,6 +65,7 @@ public class InMemoryProductService implements IProductService {
     public void createSampleProducts() {
         for (int i = 1; i <= 10; i++) {
             Product product = new Product();
+            product.setId(i);    
             product.setPartitionKey("partition" + i);
             product.setRowKey("row" + i);
             product.setName("Product" + i);

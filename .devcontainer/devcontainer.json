@@ -12,7 +12,9 @@
 			"installGradle": "false"
 		},
 		"ghcr.io/devcontainers-extra/features/springboot-sdkman:2": {}
-	}
+	},
+	"postCreateCommand": "sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java"
+}
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],

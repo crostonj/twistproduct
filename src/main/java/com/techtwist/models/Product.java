@@ -1,5 +1,6 @@
 package com.techtwist.models;
 
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
@@ -10,9 +11,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Product {
+public class Product{
+
     @JsonProperty("id")
-    private Integer id;
+    private String id;
 
     @JsonProperty("name")
     private String name;

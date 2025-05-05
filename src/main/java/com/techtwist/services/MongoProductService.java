@@ -9,9 +9,12 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+
+@Service("MongoProductService") // Matches the value in application.properties
 public class MongoProductService implements IProductService {
 
     private MongoClient mongoClient;
@@ -24,7 +27,7 @@ public class MongoProductService implements IProductService {
         database = mongoClient.getDatabase("myDatabase");
     }
 
-    public MongoProductService(MongoDatabase database) {
+    public MongoProductService() {
         this.productCollection = database.getCollection("products");
     }
 

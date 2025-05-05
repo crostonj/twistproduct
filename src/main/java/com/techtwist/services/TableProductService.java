@@ -5,7 +5,6 @@ import com.azure.data.tables.TableClientBuilder;
 import com.azure.data.tables.models.TableEntity;
 import com.techtwist.models.Product;
 import com.techtwist.services.interfaces.IProductService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 

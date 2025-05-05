@@ -3,6 +3,8 @@
     "java.format.settings.url": ".vscode/java-formatter.xml",
     "java.dependency.packagePresentation": "hierarchical",
     "java.project.explorer.showNonJavaResources": true,
+    "java.project.sourcePaths": ["src/main/java"],
+    "java.project.outputPath": "target/classes",
     "java.configuration.updateBuildConfiguration": "automatic",
     "maven.view": "flat"
 }

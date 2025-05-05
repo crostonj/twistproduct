@@ -1,0 +1,50 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          azure-b2c:
+            client-id: <YOUR_CLIENT_ID>
+            client-secret: <YOUR_CLIENT_SECRET>
+            scope: openid profile email
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-name: Azure B2C
+        provider:
+          azure-b2c:
+            issuer-uri: https://<YOUR_B2C_TENANT_NAME>.b2clogin.com/<YOUR_B2C_TENANT_NAME>.onmicrosoft.com/v2.0/.well-known/openid-configuration?p=<YOUR_SIGN_IN_POLICY>
+
+
+springdoc:
+  swagger-ui.pat: =/
+  api-docs:
+    path: /api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        includ: health
+    health:
+      show-details: always
+
+logging:
+  level.org:
+    springframework:
+      web: DEBUG
+      http:
+        converter: 
+          json: TRACE
+      web: 
+        client:
+          RestTemplate: DEBUG
+
+service:
+  tableProductService: 
+    enabled: false
+product:
+  service:
+    qualifier: InMemoryProductService
+
+server:
+  port: 8080

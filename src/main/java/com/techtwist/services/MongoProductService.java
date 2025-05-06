@@ -2,6 +2,14 @@ package com.techtwist.services;
 
 import com.techtwist.models.Product;
 import com.techtwist.services.interfaces.IProductService;
+
+import jakarta.annotation.PostConstruct;
+
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoException;
+import com.mongodb.ServerApi;
+import com.mongodb.ServerApiVersion;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -10,25 +18,54 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import org.springframework.stereotype.Service;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.util.ArrayList;
 import java.util.List;
 
 
 @Service("MongoProductService") // Matches the value in application.properties
+@ConditionalOnProperty(name = "service.mongoProductService.enabled", havingValue = "true", matchIfMissing = true)
 public class MongoProductService implements IProductService {
 
     private MongoClient mongoClient;
     private MongoDatabase database;
+    private MongoCollection<Document> productCollection;
 
-    private final MongoCollection<Document> productCollection;
-
-    public void initialize() {
-        mongoClient = MongoClients.create("mongodb://localhost:27017");
-        database = mongoClient.getDatabase("myDatabase");
+    // Zero-argument constructor
+    public MongoProductService() {
+        // Default constructor for frameworks or tools that require it
     }
 
-    public MongoProductService() {
-        this.productCollection = database.getCollection("products");
+    @PostConstruct
+    public void initialize() {
+
+        System.out.println("Initializing MongoDB client...");
+        // Correct MongoDB connection string
+        //  mongoClient = MongoClients.create("mongodb+srv://TechTwist:Q5FyWtohszx8jKwp@techtwist.c1msawb.mongodb.net/?retryWrites=true&w=majority&appName=TechTwist");
+        String connectionString = "mongodb+srv://TechTwist:Q5FyWtohszx8jKwp@techtwist.c1msawb.mongodb.net/?retryWrites=true&w=majority&appName=TechTwist";
+        ServerApi serverApi = ServerApi.builder()
+                .version(ServerApiVersion.V1)
+                .build();
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(connectionString))
+                .serverApi(serverApi)
+                .build();
+        // Create a new client and connect to the server
+        try (MongoClient mongoClient = MongoClients.create(settings)) {
+            try {
+                // Send a ping to confirm a successful connection
+                MongoDatabase database = mongoClient.getDatabase("product");
+                database.runCommand(new Document("ping", 1));
+                System.out.println("Pinged your deployment. You successfully connected to MongoDB!");
+            } catch (MongoException e) {
+                System.out.println("An error occurred while pinging the database: " + e.getMessage());
+                e.printStackTrace();
+            }
+        
+        } catch (Exception e) {
+            System.err.println("An error occurred while creating the MongoClient: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.techtwist.models.Product;
 import com.techtwist.services.interfaces.IProductService;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -18,31 +19,37 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import org.springframework.stereotype.Service;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.util.ArrayList;
 import java.util.List;
 
 
 @Service("MongoProductService") // Matches the value in application.properties
-@ConditionalOnProperty(name = "service.mongoProductService.enabled", havingValue = "true", matchIfMissing = true)
 public class MongoProductService implements IProductService {
 
     private MongoClient mongoClient;
     private MongoDatabase database;
     private MongoCollection<Document> productCollection;
 
+    //get mongo password
+    String mongoPassword = System.getenv("MONGOPASSWORD");
+
     // Zero-argument constructor
     public MongoProductService() {
         // Default constructor for frameworks or tools that require it
     }
 
-    @PostConstruct
+       @PostConstruct
     public void initialize() {
 
+
+        String connectionString = String.format(
+            "mongodb+srv://TechTwist:%s@techtwist.c1msawb.mongodb.net/?retryWrites=true&w=majority&appName=TechTwist",
+            mongoPassword
+        );
+
+
         System.out.println("Initializing MongoDB client...");
-        // Correct MongoDB connection string
-        //  mongoClient = MongoClients.create("mongodb+srv://TechTwist:Q5FyWtohszx8jKwp@techtwist.c1msawb.mongodb.net/?retryWrites=true&w=majority&appName=TechTwist");
-        String connectionString = "mongodb+srv://TechTwist:Q5FyWtohszx8jKwp@techtwist.c1msawb.mongodb.net/?retryWrites=true&w=majority&appName=TechTwist";
+        //String connectionString = "mongodb+srv://TechTwist:{mongoPassword}@techtwist.c1msawb.mongodb.net/?retryWrites=true&w=majority&appName=TechTwist";
         ServerApi serverApi = ServerApi.builder()
                 .version(ServerApiVersion.V1)
                 .build();
@@ -50,24 +57,32 @@ public class MongoProductService implements IProductService {
                 .applyConnectionString(new ConnectionString(connectionString))
                 .serverApi(serverApi)
                 .build();
-        // Create a new client and connect to the server
-        try (MongoClient mongoClient = MongoClients.create(settings)) {
+
+        try {
+            this.mongoClient = MongoClients.create(settings); // Initialize the class-level mongoClient
+            this.database = mongoClient.getDatabase("product");
+            this.productCollection = database.getCollection("products"); // Assuming your collection is named "products"
             try {
                 // Send a ping to confirm a successful connection
-                MongoDatabase database = mongoClient.getDatabase("product");
-                database.runCommand(new Document("ping", 1));
+                this.database.runCommand(new Document("ping", 1));
                 System.out.println("Pinged your deployment. You successfully connected to MongoDB!");
             } catch (MongoException e) {
                 System.out.println("An error occurred while pinging the database: " + e.getMessage());
                 e.printStackTrace();
             }
-        
         } catch (Exception e) {
             System.err.println("An error occurred while creating the MongoClient: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+    @PreDestroy
+    public void closeMongoClient() {
+        if (this.mongoClient != null) {
+            System.out.println("Closing MongoDB client.");
+            this.mongoClient.close();
+        }
+    }
     @Override
     public Product create(Product product) {
         Document doc = new Document("partitionKey", product.getPartitionKey()).append("rowKey", product.getRowKey())

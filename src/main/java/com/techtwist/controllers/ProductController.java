@@ -1,15 +1,13 @@
 package com.techtwist.controllers;
 
 import com.techtwist.models.Product;
-import com.techtwist.services.interfaces.IProductService;
+import com.techtwist.services.MongoProductService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import jakarta.annotation.PostConstruct;
 
 import java.util.List;
 
@@ -30,20 +26,10 @@ public class ProductController {
     private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private MongoProductService mangoProductService; // Inject the interface
 
-    private IProductService productService;
-
-    @Value("${product.service.qualifier}")
-    private String productServiceQualifier;
-
-    @PostConstruct
-    public void init() {
-        productService = (IProductService) applicationContext.getBean(productServiceQualifier);
-    }
-
-    @Operation(summary = "Create a new product", 
-                description = "Create a new product")
+    @Operation(summary = "Create a new product",
+            description = "Create a new product")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The product to create", required = true)
     @PostMapping
     public ResponseEntity<Product> create(@RequestBody Product product) {
@@ -53,7 +39,7 @@ public class ProductController {
                 logger.error("Invalid product data: {}", product);
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid product data");
             }
-            Product createdProduct = productService.create(product);
+            Product createdProduct = mangoProductService.create(product);
             logger.info("Product created successfully: {}", createdProduct);
             return ResponseEntity.ok(createdProduct);
         } catch (ResponseStatusException e) {
@@ -65,8 +51,8 @@ public class ProductController {
         }
     }
 
-    @Operation(summary = "Get a product by partitionKey and rowKey", 
-                description = "Get a product by partitionKey and rowKey")
+    @Operation(summary = "Get a product by partitionKey and rowKey",
+            description = "Get a product by partitionKey and rowKey")
     @Parameter(name = "partitionKey", description = "The partition key of the product")
     @Parameter(name = "rowKey", description = "The row key of the product")
     @GetMapping(value = "/{partitionKey}/{rowKey}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -74,37 +60,37 @@ public class ProductController {
             @PathVariable String partitionKey,
             @PathVariable String rowKey) {
         try {
-            Product product = productService.get(partitionKey, rowKey);
+            Product product = mangoProductService.get(partitionKey, rowKey);
             if (product == null) {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(product);
         } catch (Exception e) {
-            e.printStackTrace(); // Or use a logging framework
+            logger.error("Error getting product by key", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to read entity", e);
         }
     }
 
-    @Operation(summary = "Get a product by name", 
-                description = "Get a product by name")
+    @Operation(summary = "Get a product by name",
+            description = "Get a product by name")
     @Parameter(name = "name", description = "The name of the product")
-    @GetMapping(value = "/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/name/{name}", produces = MediaType.APPLICATION_JSON_VALUE) // Changed path to avoid conflict with key-based get
     public ResponseEntity<Product> getByName(
             @PathVariable String name) {
         try {
-            Product product = productService.getByName(name);
+            Product product = mangoProductService.getByName(name);
             if (product == null) {
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(product);
         } catch (Exception e) {
-            e.printStackTrace(); // Or use a logging framework
+            logger.error("Error getting product by name", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to read entity", e);
         }
     }
 
-    @Operation(summary = "Update a product", 
-                description = "Update a product")
+    @Operation(summary = "Update a product",
+            description = "Update a product")
     @Parameter(name = "product", description = "The product to update")
     @PutMapping
     public ResponseEntity<Product> update(@RequestBody Product product) {
@@ -112,15 +98,15 @@ public class ProductController {
             if (product == null || product.getPartitionKey() == null || product.getRowKey() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid product data");
             }
-            return ResponseEntity.ok(productService.update(product));
+            return ResponseEntity.ok(mangoProductService.update(product));
         } catch (Exception e) {
-            e.printStackTrace(); // Or use a logging framework
+            logger.error("Error updating product", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update product", e);
         }
     }
 
-    @Operation(summary = "Delete a product", 
-                description = "Delete a product")
+    @Operation(summary = "Delete a product",
+            description = "Delete a product")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The product to delete", required = true)
     @DeleteMapping
     public void delete(@RequestBody Product product) {
@@ -128,19 +114,19 @@ public class ProductController {
             if (product == null || product.getPartitionKey() == null || product.getRowKey() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid product data");
             }
-            productService.delete(product);
+            mangoProductService.delete(product);
         } catch (Exception e) {
-            e.printStackTrace(); // Or use a logging framework
+            logger.error("Error deleting product", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete product", e);
         }
     }
 
-    @Operation(summary = "List all products", 
-                description = "Retrieve a list of all products")
+    @Operation(summary = "List all products",
+            description = "Retrieve a list of all products")
     @GetMapping(value = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Product>> listAll() {
         try {
-            List<Product> products = productService.List();
+            List<Product> products = mangoProductService.List();
             if (products.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }

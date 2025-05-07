@@ -2,7 +2,7 @@ server:
   port: 8080
 
 springdoc:
-  swagger-ui.pat: =/
+  swagger-ui.path: /
   api-docs:
     path: /api-docs
 
@@ -10,7 +10,7 @@ management:
   endpoints:
     web:
       exposure:
-        includ: health
+        include: health
     health:
       show-details: always
 

@@ -19,12 +19,16 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Service("MongoProductService") // Matches the value in application.properties
 public class MongoProductService implements IProductService {
+
+    private static final Logger logger = LoggerFactory.getLogger(MongoProductService.class);
 
     private MongoClient mongoClient;
     private MongoDatabase database;
@@ -38,18 +42,14 @@ public class MongoProductService implements IProductService {
         // Default constructor for frameworks or tools that require it
     }
 
-       @PostConstruct
+    @PostConstruct
     public void initialize() {
-
-
         String connectionString = String.format(
             "mongodb+srv://TechTwist:%s@techtwist.c1msawb.mongodb.net/?retryWrites=true&w=majority&appName=TechTwist",
             mongoPassword
         );
 
-
-        System.out.println("Initializing MongoDB client...");
-        //String connectionString = "mongodb+srv://TechTwist:{mongoPassword}@techtwist.c1msawb.mongodb.net/?retryWrites=true&w=majority&appName=TechTwist";
+        logger.info("Initializing MongoDB client...");
         ServerApi serverApi = ServerApi.builder()
                 .version(ServerApiVersion.V1)
                 .build();
@@ -59,20 +59,14 @@ public class MongoProductService implements IProductService {
                 .build();
 
         try {
-            this.mongoClient = MongoClients.create(settings); // Initialize the class-level mongoClient
-            this.database = mongoClient.getDatabase("product");
-            this.productCollection = database.getCollection("products"); // Assuming your collection is named "products"
-            try {
-                // Send a ping to confirm a successful connection
-                this.database.runCommand(new Document("ping", 1));
-                System.out.println("Pinged your deployment. You successfully connected to MongoDB!");
-            } catch (MongoException e) {
-                System.out.println("An error occurred while pinging the database: " + e.getMessage());
-                e.printStackTrace();
-            }
-        } catch (Exception e) {
-            System.err.println("An error occurred while creating the MongoClient: " + e.getMessage());
-            e.printStackTrace();
+            this.mongoClient = MongoClients.create(settings);
+            this.database = mongoClient.getDatabase("TechTwist");
+            this.productCollection = database.getCollection("products");
+            this.database.runCommand(new Document("ping", 1));
+            System.out.println("Pinged your deployment. You successfully connected to MongoDB!");
+        } catch (MongoException e) {
+            System.err.println("An error occurred while connecting to MongoDB: " + e.getMessage());
+            throw new RuntimeException("Failed to initialize MongoDB client", e);
         }
     }
 

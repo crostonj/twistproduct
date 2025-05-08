@@ -2,42 +2,29 @@ server:
   port: 8080
 
 springdoc:
-  swagger-ui.path: /
+  swagger-ui:
+    path: /
   api-docs:
     path: /api-docs
 
 management:
+  endpoint:
+    health:
+      show-details: always
   endpoints:
     web:
       exposure:
         include: health
-    health:
-      show-details: always
 
 logging:
-  level.org:
-    springframework:
+  level:
+    org.springframework:
       web: DEBUG
-      http:
-        converter: 
-          json: TRACE
-      web: 
-        client:
-          RestTemplate: DEBUG
+      http.converter.json: TRACE
+      web.client.RestTemplate: DEBUG
 
 spring:
   profiles:
     active: default
 
-service:
-  tableProductService: 
-    enabled: false
-  mongoProductService:
-    enabled: true
-  inMemoryProductService:
-    enabled: false
-
-product:
-  service:
-    qualifier: MongoProductService
 

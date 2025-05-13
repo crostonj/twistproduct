@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -23,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = ProductController.class,
     excludeAutoConfiguration = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class}) // Explicitly specify the controller and exclude MongoDB auto-configuration
+@AutoConfigureMockMvc(addFilters = false) // disables Spring Security filters
 @Import({InMemoryProductService.class, ProductServiceTestHelper.class}) // Include InMemoryProductService and ProductServiceTestHelper in the test context
 class ProductControllerTest {
     

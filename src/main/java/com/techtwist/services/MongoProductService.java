@@ -17,7 +17,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,58 +26,41 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+@Primary
 @Service("MongoProductService") // Matches the value in application.properties
 public class MongoProductService implements IProductService {
 
     private static final Logger logger = LoggerFactory.getLogger(MongoProductService.class);
 
     private MongoClient mongoClient;
-    private MongoDatabase database;
+
     private MongoCollection<Document> productCollection;
 
-    //get mongo password
-    String mongoPassword = System.getenv("MONGOPASSWORD");
 
-    // Zero-argument constructor
-    public MongoProductService() {
-        // Default constructor for frameworks or tools that require it
+    @Autowired
+    public MongoProductService(MongoClient mongoClient) {
+        this.mongoClient = mongoClient;
     }
 
     @PostConstruct
     public void initialize() {
-        String connectionString = String.format(
-            "mongodb+srv://TechTwist:%s@techtwist.c1msawb.mongodb.net/?retryWrites=true&w=majority&appName=TechTwist",
-            mongoPassword
-        );
-
-        logger.info("Initializing MongoDB client...");
-        ServerApi serverApi = ServerApi.builder()
-                .version(ServerApiVersion.V1)
-                .build();
-        MongoClientSettings settings = MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(connectionString))
-                .serverApi(serverApi)
-                .build();
-
+        logger.info("Initializing MongoProductService with Spring-managed MongoClient.");
         try {
-            this.mongoClient = MongoClients.create(settings);
-            this.database = mongoClient.getDatabase("TechTwist");
-            this.productCollection = database.getCollection("products");
-            this.database.runCommand(new Document("ping", 1));
-            System.out.println("Pinged your deployment. You successfully connected to MongoDB!");
-        } catch (MongoException e) {
-            System.err.println("An error occurred while connecting to MongoDB: " + e.getMessage());
-            throw new RuntimeException("Failed to initialize MongoDB client", e);
+            // Spring Boot typically configures the database from the URI.
+            // If your URI includes '/TechTwist', it should connect to that database.
+            // Otherwise, you can specify spring.data.mongodb.database or get it here.
+            MongoDatabase database = mongoClient.getDatabase("TechTwist"); // Or derive from config
+            this.productCollection = database.getCollection("Products");
+
+            // Ping to confirm (Spring Boot's health indicator often does this too)
+            database.runCommand(new Document("ping", 1));
+            logger.info("Successfully pinged MongoDB via Spring-managed client!");
+        } catch (Exception e) {
+            logger.error("Failed to initialize productCollection or ping MongoDB", e);
+            throw new RuntimeException("Failed to initialize MongoDB components in MongoProductService", e);
         }
     }
 
-    @PreDestroy
-    public void closeMongoClient() {
-        if (this.mongoClient != null) {
-            System.out.println("Closing MongoDB client.");
-            this.mongoClient.close();
-        }
-    }
     @Override
     public Product create(Product product) {
         Document doc = new Document("partitionKey", product.getPartitionKey()).append("rowKey", product.getRowKey())

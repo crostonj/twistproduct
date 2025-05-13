@@ -1,0 +1,38 @@
+server:
+  port: 8080
+
+springdoc:
+  swagger-ui:
+    path: /
+  api-docs:
+    path: /api-docs
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  level:
+    org.springframework:
+      web: DEBUG
+      http.converter.json: TRACE
+      web.client.RestTemplate: DEBUG
+    # Add these for more insight into MongoDB auto-configuration and driver activity
+    boot.autoconfigure.mongo: DEBUG
+  com.mongodb.client: DEBUG
+
+spring:
+  profiles:
+    active: default
+  data:
+    mongodb:
+      uri: mongodb+srv://TechTwist:@techtwist.c1msawb.mongodb.net/TechTwist?retryWrites=true&w=majority&appName=TechTwist
+
+      # Optionally, specify the database name if not in the URI or if you want to be explicit,
+      # though it's already part of your URI (/TechTwist)
+      database: TechTwist

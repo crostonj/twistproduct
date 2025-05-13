@@ -1,7 +1,7 @@
 package com.techtwist.controllers;
 
 import com.techtwist.models.Product;
-import com.techtwist.services.MongoProductService;
+import com.techtwist.services.interfaces.IProductService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,8 +25,12 @@ import java.util.List;
 public class ProductController {
     private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
-    @Autowired
-    private MongoProductService mangoProductService; // Inject the interface
+    private final IProductService productService;
+
+    @Autowired // Constructor injection
+    public ProductController(IProductService productService) {
+        this.productService = productService;
+    }
 
     @Operation(summary = "Create a new product",
             description = "Create a new product")
@@ -39,7 +43,7 @@ public class ProductController {
                 logger.error("Invalid product data: {}", product);
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid product data");
             }
-            Product createdProduct = mangoProductService.create(product);
+            Product createdProduct = productService.create(product);
             logger.info("Product created successfully: {}", createdProduct);
             return ResponseEntity.ok(createdProduct);
         } catch (ResponseStatusException e) {
@@ -60,7 +64,7 @@ public class ProductController {
             @PathVariable String partitionKey,
             @PathVariable String rowKey) {
         try {
-            Product product = mangoProductService.get(partitionKey, rowKey);
+            Product product = productService.get(partitionKey, rowKey);
             if (product == null) {
                 return ResponseEntity.notFound().build();
             }
@@ -78,7 +82,7 @@ public class ProductController {
     public ResponseEntity<Product> getByName(
             @PathVariable String name) {
         try {
-            Product product = mangoProductService.getByName(name);
+            Product product = productService.getByName(name);
             if (product == null) {
                 return ResponseEntity.notFound().build();
             }
@@ -98,7 +102,11 @@ public class ProductController {
             if (product == null || product.getPartitionKey() == null || product.getRowKey() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid product data");
             }
-            return ResponseEntity.ok(mangoProductService.update(product));
+            Product updatedProduct = productService.update(product);
+            if (updatedProduct == null) {
+                return ResponseEntity.notFound().build(); // Or handle as appropriate if update implies existence
+            }
+            return ResponseEntity.ok(updatedProduct);
         } catch (Exception e) {
             logger.error("Error updating product", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update product", e);
@@ -114,7 +122,7 @@ public class ProductController {
             if (product == null || product.getPartitionKey() == null || product.getRowKey() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid product data");
             }
-            mangoProductService.delete(product);
+            productService.delete(product);
         } catch (Exception e) {
             logger.error("Error deleting product", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete product", e);
@@ -126,7 +134,7 @@ public class ProductController {
     @GetMapping(value = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Product>> listAll() {
         try {
-            List<Product> products = mangoProductService.List();
+            List<Product> products = productService.List();
             if (products.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }

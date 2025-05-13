@@ -7,24 +7,27 @@ import com.techtwist.models.Product;
 import com.techtwist.services.InMemoryProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.UUID;
 
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = ProductController.class) // Explicitly specify the controller
+@WebMvcTest(controllers = ProductController.class,
+    excludeAutoConfiguration = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class}) // Explicitly specify the controller and exclude MongoDB auto-configuration
 @Import({InMemoryProductService.class, ProductServiceTestHelper.class}) // Include InMemoryProductService and ProductServiceTestHelper in the test context
 class ProductControllerTest {
-
-    private MockMvc mockMvc;
+    
+    @Autowired
+    private MockMvc mockMvc; // Autowire MockMvc provided by @WebMvcTest
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -42,7 +45,9 @@ class ProductControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(productController).build(); // Use the autowired controller
+        // With @WebMvcTest, MockMvc is auto-configured and injected.
+        // The line below is not needed and can be removed.
+        // mockMvc = MockMvcBuilders.standaloneSetup(productController).build();
         rowKey = UUID.randomUUID().toString();
     }
 
@@ -90,7 +95,7 @@ class ProductControllerTest {
         productServiceTestHelper.addProduct(product); // Use the helper to add the product to the in-memory store
 
 
-        mockMvc.perform(get("/product/MoneyIn").accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/product/name/MoneyIn").accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.name").value("MoneyIn"))

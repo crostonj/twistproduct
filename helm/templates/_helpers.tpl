@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "bytepeak.name" -}}
+{{- define "twist-product.name" -}}
 {{- default .Chart.Name .Values.nameOverride | lower | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "bytepeak.fullname" -}}
+{{- define "twist-product.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | lower | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -26,24 +26,24 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart's version and application version as part of the labels
 */}}
-{{- define "bytepeak.version" -}}
+{{- define "twist-product.version" -}}
 {{- printf "%s-%s" .Chart.Version .Chart.AppVersion -}}
 {{- end -}}
 
 {{/*
 Create the label for the selector
 */}}
-{{- define "bytepeak.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "bytepeak.name" . }}
+{{- define "twist-product.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "twist-product.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{/*
 Create the labels
 */}}
-{{- define "bytepeak.labels" -}}
-{{ include "bytepeak.selectorLabels" . }}
-helm.sh/chart: {{ include "bytepeak.chart" . }}
+{{- define "twist-product.labels" -}}
+{{ include "twist-product.selectorLabels" . }}
+helm.sh/chart: {{ include "twist-product.chart" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -53,9 +53,9 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "bytepeak.serviceAccountName" -}}
+{{- define "twist-product.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create -}}
-{{- default (include "bytepeak.fullname" .) .Values.serviceAccount.name -}}
+{{- default (include "twist-product.fullname" .) .Values.serviceAccount.name -}}
 {{- else -}}
 {{- default "default" .Values.serviceAccount.name -}}
 {{- end -}}
@@ -64,6 +64,6 @@ Create the name of the service account to use
 {{/*
 Common labels
 */}}
-{{- define "bytepeak.chart" -}}
+{{- define "twist-product.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

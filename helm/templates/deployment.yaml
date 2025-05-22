@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "bytepeak.fullname" . }}
+  name: {{ include "twist-product.fullname" . }}
   labels:
-    {{- include "bytepeak.labels" . | nindent 4 }}
+    {{- include "twist-product.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "bytepeak.selectorLabels" . | nindent 6 }}
+      {{- include "twist-product.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,17 +18,17 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "bytepeak.selectorLabels" . | nindent 8 }}
+        {{- include "twist-product.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "bytepeak.serviceAccountName" . }}
+      serviceAccountName: {{ include "twist-product.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ include "bytepeak.name" . }}
+        - name: {{ include "twist-product.name" . }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -37,10 +37,10 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
-          # livenessProbe:
-          #   httpGet:
-          #     path: /
-          #     port: http
+          livenessProbe:
+             httpGet:
+               path: /health
+               port: http
           # readinessProbe:
           #   httpGet:
           #     path: /

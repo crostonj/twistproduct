@@ -1,0 +1,9 @@
+# docker-compose.yml
+version: "3.8"
+services:
+  app:
+    build: .
+    environment:
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+    # ...other config...

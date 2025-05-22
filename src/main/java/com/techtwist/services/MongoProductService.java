@@ -49,8 +49,8 @@ public class MongoProductService implements IProductService {
             // Spring Boot typically configures the database from the URI.
             // If your URI includes '/TechTwist', it should connect to that database.
             // Otherwise, you can specify spring.data.mongodb.database or get it here.
-            MongoDatabase database = mongoClient.getDatabase("TechTwist"); // Or derive from config
-            this.productCollection = database.getCollection("Products");
+            MongoDatabase database = mongoClient.getDatabase("techtwist"); // Or derive from config
+            this.productCollection = database.getCollection("products");
 
             // Ping to confirm (Spring Boot's health indicator often does this too)
             database.runCommand(new Document("ping", 1));
@@ -63,49 +63,81 @@ public class MongoProductService implements IProductService {
 
     @Override
     public Product create(Product product) {
-        Document doc = new Document("partitionKey", product.getPartitionKey()).append("rowKey", product.getRowKey())
-                .append("name", product.getName()).append("description", product.getDescription());
-        productCollection.insertOne(doc);
-        product.setId(doc.getObjectId("_id").toString());
-        return product;
+        try {
+            Document doc = new Document("partitionKey", product.getPartitionKey())
+                    .append("rowKey", product.getRowKey())
+                    .append("name", product.getName())
+                    .append("description", product.getDescription());
+            productCollection.insertOne(doc);
+            product.setId(doc.getObjectId("_id").toString());
+            return product;
+        } catch (Exception e) {
+            logger.error("Error creating product", e);
+            throw new RuntimeException("Failed to create product", e);
+        }
     }
 
     @Override
     public Product get(String partitionKey, String rowKey) {
-        Document query = new Document("partitionKey", partitionKey).append("rowKey", rowKey);
-        Document doc = productCollection.find(query).first();
-        return doc != null ? documentToProduct(doc) : null;
+        try {
+            Document query = new Document("partitionKey", partitionKey).append("rowKey", rowKey);
+            Document doc = productCollection.find(query).first();
+            return doc != null ? documentToProduct(doc) : null;
+        } catch (Exception e) {
+            logger.error("Error getting product by partitionKey and rowKey", e);
+            throw new RuntimeException("Failed to get product", e);
+        }
     }
 
     @Override
     public Product getByName(String name) {
-        Document query = new Document("name", name);
-        Document doc = productCollection.find(query).first();
-        return doc != null ? documentToProduct(doc) : null;
+        try {
+            Document query = new Document("name", name);
+            Document doc = productCollection.find(query).first();
+            return doc != null ? documentToProduct(doc) : null;
+        } catch (Exception e) {
+            logger.error("Error getting product by name", e);
+            throw new RuntimeException("Failed to get product by name", e);
+        }
     }
 
     @Override
     public Product update(Product product) {
-        Document query = new Document("_id", new ObjectId(product.getId()));
-        Document update = new Document("$set",
-                new Document("name", product.getName()).append("description", product.getDescription()));
-        productCollection.updateOne(query, update);
-        return product;
+        try {
+            Document query = new Document("_id", new ObjectId(product.getId()));
+            Document update = new Document("$set",
+                    new Document("name", product.getName()).append("description", product.getDescription()));
+            productCollection.updateOne(query, update);
+            return product;
+        } catch (Exception e) {
+            logger.error("Error updating product", e);
+            throw new RuntimeException("Failed to update product", e);
+        }
     }
 
     @Override
     public void delete(Product product) {
-        Document query = new Document("_id", new ObjectId(product.getId()));
-        productCollection.deleteOne(query);
+        try {
+            Document query = new Document("_id", new ObjectId(product.getId()));
+            productCollection.deleteOne(query);
+        } catch (Exception e) {
+            logger.error("Error deleting product", e);
+            throw new RuntimeException("Failed to delete product", e);
+        }
     }
 
     @Override
     public List<Product> List() {
-        List<Product> products = new ArrayList<>();
-        for (Document doc : productCollection.find()) {
-            products.add(documentToProduct(doc));
+        try {
+            List<Product> products = new ArrayList<>();
+            for (Document doc : productCollection.find()) {
+                products.add(documentToProduct(doc));
+            }
+            return products;
+        } catch (Exception e) {
+            logger.error("Error listing products", e);
+            throw new RuntimeException("Failed to list products", e);
         }
-        return products;
     }
 
     private Product documentToProduct(Document doc) {

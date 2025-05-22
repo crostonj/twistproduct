@@ -40,3 +40,5 @@ build/
 .env
 .idea
 .terraform
+
+secrets-values.yaml

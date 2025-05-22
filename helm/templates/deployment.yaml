@@ -39,7 +39,7 @@ spec:
               protocol: TCP
           livenessProbe:
              httpGet:
-               path: /health
+               path: /actuator/health
                port: http
           # readinessProbe:
           #   httpGet:
@@ -47,6 +47,33 @@ spec:
           #     port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "twist-product.fullname" . }}-mongo-secret
+                  key: mongo-username
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "twist-product.fullname" . }}-mongo-secret
+                  key: mongo-password
+            - name: MONGO_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "twist-product.fullname" . }}-mongo-secret
+                  key: mongo-host
+          volumeMounts:
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+            {{- end }}
+      volumes:
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "twist-product.fullname" . }}-pvc
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

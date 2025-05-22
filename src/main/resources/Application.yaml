@@ -31,6 +31,6 @@ spring:
     active: default
   data:
     mongodb:
-      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@192.168.10.43:27017/techtwist?authSource=admin
+      uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/techtwist?authSource=admin
       # Remove or update the database property to match the correct case if needed
       database: techtwist

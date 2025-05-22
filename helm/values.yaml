@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: crostonj/twistproduct # Replace with your image name
+  repository: crostonj/techtwist-product # Replace with your image name
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.0.0-multiarch" # Or use a specific tag like "1.0.0"
+  tag: "raspberry-pi" # Or use a specific tag like "1.0.0"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -39,7 +39,7 @@ securityContext: {}
 service:
   type: ClusterIP # Or LoadBalancer if you need external access
   port: 8088 # The port the service listens on
-  targetPort: 80 # The port your container listens on (from Dockerfile EXPOSE)
+  targetPort: 8080 # The port your container listens on (from Dockerfile EXPOSE)
 
 ingress:
   enabled: true
@@ -76,6 +76,19 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  storageClass: "" # Use "" for default, or specify your storage class
+  mountPath: /data # Change to the path your app expects
+
+
+mongo:
+  enabled: true
+  host: lab-master.lan # Replace with your MongoDB host
+  port: 27017 # Replace with your MongoDB port
+  
 # Node selector for scheduling pods
 nodeSelector: {}
 

@@ -9,7 +9,8 @@
 		"ghcr.io/devcontainers/features/java:1": {},
 		"ghcr.io/devcontainers-extra/features/springboot-sdkman:2": {},
 		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
-		"ghcr.io/devcontainers-extra/features/kubectl-asdf:2": {}
+		"ghcr.io/devcontainers-extra/features/kubectl-asdf:2": {},
+		"ghcr.io/devcontainers-extra/features/maven-sdkman:2": {}
 	},
 	"postCreateCommand": "sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java"
 

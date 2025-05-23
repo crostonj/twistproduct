@@ -48,21 +48,26 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
-            - name: MONGO_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "twist-product.fullname" . }}-mongo-secret
-                  key: mongo-username
-            - name: MONGO_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "twist-product.fullname" . }}-mongo-secret
-                  key: mongo-password
-            - name: MONGO_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "twist-product.fullname" . }}-mongo-secret
-                  key: mongo-host
+          - name: MONGO_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: mongo-credentials
+                key: MONGO_USERNAME
+          - name: MONGO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mongo-credentials
+                key: MONGO_PASSWORD
+          - name: MONGO_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "twist-product.fullname" . }}-mongo-secret
+                key: mongo-host
+          - name: MONGO_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "twist-product.fullname" . }}-mongo-secret
+                key: mongo-port
           volumeMounts:
             {{- if .Values.persistence.enabled }}
             - name: data

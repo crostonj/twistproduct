@@ -51,22 +51,22 @@ spec:
           - name: MONGO_USERNAME
             valueFrom:
               secretKeyRef:
-                name: mongo-credentials
+                name:  {{ include "twist-product.fullname" . }}-mongo-secret
                 key: MONGO_USERNAME
           - name: MONGO_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: mongo-credentials
+                name:  {{ include "twist-product.fullname" . }}-mongo-secret
                 key: MONGO_PASSWORD
           - name: MONGO_HOST
             valueFrom:
               configMapKeyRef:
-                name: {{ include "twist-product.fullname" . }}-mongo-secret
+                name: {{ include "twist-product.fullname" . }}-mongo-config
                 key: mongo-host
           - name: MONGO_PORT
             valueFrom:
               configMapKeyRef:
-                name: {{ include "twist-product.fullname" . }}-mongo-secret
+                name: {{ include "twist-product.fullname" . }}-mongo-config
                 key: mongo-port
           volumeMounts:
             {{- if .Values.persistence.enabled }}

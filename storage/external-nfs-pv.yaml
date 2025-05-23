@@ -11,5 +11,5 @@ spec:
     - ReadWriteOnce
   nfs:
     path: /mnt/data/k3      # <-- Update this to your exported NFS path
-    server: lab-master.lan # <-- Update this to your NFS server's address
+    server: lab-master # <-- Update this to your NFS server's address
   persistentVolumeReclaimPolicy: Retain

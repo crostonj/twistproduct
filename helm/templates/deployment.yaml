@@ -40,7 +40,11 @@ spec:
           livenessProbe:
              httpGet:
                path: /actuator/health
-               port: http
+               port: 8080
+             initialDelaySeconds: 30
+             timeoutSeconds: 5 
+             periodSeconds: 10
+             failureThreshold: 3
           # readinessProbe:
           #   httpGet:
           #     path: /
@@ -48,6 +52,10 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
+          - name: SPRING_DATA_MONGODB_URI
+           # value: mongodb://$(MONGO_USERNAME):$(MONGO_PASSWORD)@$(MONGO_HOST):$(MONGO_PORT)/techtwist?authSource=admin
+            value: mongodb://{{ .Values.mongo.username }}:{{ .Values.mongo.password }}@{{ .Values.mongo.host }}:{{ .Values.mongo.port }}/techtwist?authSource=admin
+
           - name: MONGO_USERNAME
             valueFrom:
               secretKeyRef:

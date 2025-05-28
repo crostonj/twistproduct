@@ -46,11 +46,12 @@ ingress:
   className: "nginx"
   annotations: 
     kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
     # kubernetes.io/tls-acme: "true"
   hosts:
     - host: techtwist.lan
       paths:
-        - path: /product/
+        - path: "/product(/|$)(.*)"
           pathType: ImplementationSpecific
   tls: []
   #  - secretName: chart-example-tls
@@ -88,6 +89,9 @@ mongo:
   enabled: true
   host: lab-master # Replace with your MongoDB host
   port: 27017 # Replace with your MongoDB port
+  username: jeff # Replace with your MongoDB username
+  password: mypassword # Replace with your MongoDB password
+
   
 # Node selector for scheduling pods
 nodeSelector: {}

@@ -30,11 +30,10 @@ logging:
 
 # /workspaces/twistproduct/src/main/resources/Application.yaml
 spring:
-  profiles:
-    active: default
   data:
     mongodb:
-      # uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/techtwist?authSource=admin # Comment out or remove this line
+      # uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/techtwist?authSource=admin
+
       host: ${MONGO_HOST}
       port: ${MONGO_PORT}
       username: ${MONGO_USERNAME}

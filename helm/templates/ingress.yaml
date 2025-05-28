@@ -17,7 +17,7 @@ spec:
       http:
         paths:
           {{- range .paths }}
-          - path:  /product(/|$)(.*)
+          - path:  {{ .path }}
             pathType: {{ .pathType }}
             backend:
               service:

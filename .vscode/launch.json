@@ -16,7 +16,14 @@
             "name": "Application",
             "request": "launch",
             "mainClass": "com.techtwist.Application",
-            "projectName": "Product"
+            "projectName": "Product",
+            "env": {
+                "MONGO_HOST": "192.168.10.43",
+                "MONGO_PORT": "27017",
+                "MONGO_USERNAME": "jeff",
+                "MONGO_PASSWORD": "mypassword"
+                // Add any other environment variables your application might need for local debugging
+            }
         }
     ]
 }

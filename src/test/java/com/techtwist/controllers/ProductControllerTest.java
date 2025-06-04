@@ -54,7 +54,16 @@ class ProductControllerTest {
     }
 
     private Product createTestProduct() {
-        return new Product("1", "Product1", 10.0, "Product Description", "imugeurl", "category", "brand", rowKey, "partitionKey");
+        return new Product(
+                "1",
+                "Product1",
+                10.0,
+                "Product Description",
+                "imugeurl",
+                "category",
+                "brand",
+                "partitionKey",
+                rowKey);
     }
 
     @Test

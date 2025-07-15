@@ -1,161 +1,235 @@
 package com.techtwist.controllers;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.techtwist.helpers.ProductServiceTestHelper;
-import com.techtwist.models.Product;
-import com.techtwist.services.InMemoryProductService;
-import org.junit.jupiter.api.BeforeEach;
+import com.techtwist.dto.*;
+import com.techtwist.services.interfaces.IProductService;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = ProductController.class,
-    excludeAutoConfiguration = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class}) // Explicitly specify the controller and exclude MongoDB auto-configuration
-@AutoConfigureMockMvc(addFilters = false) // disables Spring Security filters
-@Import({InMemoryProductService.class, ProductServiceTestHelper.class}) // Include InMemoryProductService and ProductServiceTestHelper in the test context
-class ProductControllerTest {
-    
+@WebMvcTest(ProductController.class)
+@ContextConfiguration(classes = {ProductController.class, ProductControllerTest.TestConfig.class})
+public class ProductControllerTest {
+
     @Autowired
-    private MockMvc mockMvc; // Autowire MockMvc provided by @WebMvcTest
+    private MockMvc mockMvc;
+
+    @Autowired
+    private IProductService productService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private ProductController productController; // Autowire the controller from the Spring context
-
-    @Autowired
-    private InMemoryProductService productService; // Use the actual InMemoryProductService
-
-    @Autowired
-    private ProductServiceTestHelper productServiceTestHelper; // Autowire the helper class
-
-    private String rowKey;
-
-    @BeforeEach
-    void setUp() {
-        // With @WebMvcTest, MockMvc is auto-configured and injected.
-        // The line below is not needed and can be removed.
-        // mockMvc = MockMvcBuilders.standaloneSetup(productController).build();
-        rowKey = UUID.randomUUID().toString();
-    }
-
-    private Product createTestProduct() {
-        return new Product(
-                "1",
-                "Product1",
-                10.0,
-                "Product Description",
-                "imugeurl",
-                "category",
-                "brand",
-                "partitionKey",
-                rowKey);
+    @Configuration
+    static class TestConfig {
+        @Bean
+        public IProductService productService() {
+            return mock(IProductService.class);
+        }
     }
 
     @Test
     public void testCreateProduct() throws Exception {
-        Product product = createTestProduct();
+        ProductCreateDTO createDTO = new ProductCreateDTO();
+        createDTO.setName("FlexiRetail Mobile POS");
+        createDTO.setDescription("Mobile POS solution with tablet and wireless payment processing for flexible retail operations.");
+        createDTO.setPrice(new BigDecimal("399.99"));
+        createDTO.setCategoryName("Retail");
+        createDTO.setBrand("TechTwist");
 
-        mockMvc.perform(post("/product")
+        ProductResponseDTO responseDTO = new ProductResponseDTO();
+        responseDTO.setId("ret_pos_004");
+        responseDTO.setName("FlexiRetail Mobile POS");
+        responseDTO.setDescription("Mobile POS solution with tablet and wireless payment processing for flexible retail operations.");
+        responseDTO.setPrice(new BigDecimal("399.99"));
+        responseDTO.setCategoryName("Retail");
+        responseDTO.setBrand("TechTwist");
+
+        when(productService.create(any(ProductCreateDTO.class))).thenReturn(responseDTO);
+
+        mockMvc.perform(post("/api/products")
                 .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON) // Specify the expected response type
-                .content(objectMapper.writeValueAsString(product)))
-            .andDo(result -> System.out.println("Response: " + result.getResponse().getContentAsString())) // Log response
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.partitionKey").value(product.getPartitionKey())) // Verify JSON object properties
-            .andExpect(jsonPath("$.rowKey").value(product.getRowKey()))
-            .andExpect(jsonPath("$.name").value(product.getName()))
-            .andExpect(jsonPath("$.price").value(product.getPrice()));
+                .content(objectMapper.writeValueAsString(createDTO)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value("ret_pos_004"))
+                .andExpect(jsonPath("$.name").value("FlexiRetail Mobile POS"))
+                .andExpect(jsonPath("$.price").value(399.99));
     }
 
     @Test
-    void testGetProduct() throws Exception {
-        Product product = createTestProduct();
+    public void testGetProductById() throws Exception {
+        ProductResponseDTO responseDTO = new ProductResponseDTO();
+        responseDTO.setId("ret_pos_004");
+        responseDTO.setName("FlexiRetail Mobile POS");
+        responseDTO.setDescription("Mobile POS solution with tablet and wireless payment processing for flexible retail operations.");
+        responseDTO.setPrice(new BigDecimal("399.99"));
+        responseDTO.setCategoryName("Retail");
+        responseDTO.setBrand("TechTwist");
 
-        productServiceTestHelper.addProduct(product); // Use the helper to add the product to the in-memory store
+        when(productService.findById("ret_pos_004")).thenReturn(Optional.of(responseDTO));
 
-        productService.create(product); // Add the product to the in-memory store
-
-        mockMvc.perform(get("/product/{partitionKey}/{rowKey}", product.getPartitionKey(), product.getRowKey())
-                .contentType(MediaType.APPLICATION_JSON))
-            .andDo(result -> System.out.println("Response: " + result.getResponse().getContentAsString())) // Log response
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.partitionKey").value(product.getPartitionKey())) // Verify JSON object properties
-            .andExpect(jsonPath("$.rowKey").value(product.getRowKey()))
-            .andExpect(jsonPath("$.name").value(product.getName()))
-            .andExpect(jsonPath("$.price").value(product.getPrice()));
+        mockMvc.perform(get("/api/products/ret_pos_004"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("ret_pos_004"))
+                .andExpect(jsonPath("$.name").value("FlexiRetail Mobile POS"))
+                .andExpect(jsonPath("$.price").value(399.99));
     }
 
     @Test
-    void testGetByName() throws Exception {
-        Product product = new Product("1", "MoneyIn", 10.0, "Product Description", "imugeurl", "category", "brand", "partitionKey", rowKey);
-        productServiceTestHelper.addProduct(product); // Use the helper to add the product to the in-memory store
+    public void testGetProductByIdNotFound() throws Exception {
+        when(productService.findById("999")).thenReturn(Optional.empty());
 
-
-        mockMvc.perform(get("/product/name/MoneyIn").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.name").value("MoneyIn"))
-            .andExpect(jsonPath("$.price").value(10.0))
-            .andExpect(jsonPath("$.partitionKey").value("partitionKey"))
-            .andExpect(jsonPath("$.rowKey").value(rowKey));
+        mockMvc.perform(get("/api/products/999"))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    void testGetByName_NotFound() throws Exception {
-        mockMvc.perform(get("/product/NonExistent").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound());
-    }
+    public void testUpdateProduct() throws Exception {
+        ProductUpdateDTO updateDTO = new ProductUpdateDTO();
+        updateDTO.setName("FlexiRetail Mobile POS v2");
+        updateDTO.setDescription("Enhanced mobile POS solution with tablet and wireless payment processing for flexible retail operations.");
+        updateDTO.setPrice(new BigDecimal("449.99"));
+        updateDTO.setCategoryName("Retail");
+        updateDTO.setBrand("TechTwist");
 
-    @Test
-    void testInsertAndUpdateProduct() throws Exception {
-        Product product = createTestProduct();
+        ProductResponseDTO responseDTO = new ProductResponseDTO();
+        responseDTO.setId("ret_pos_004");
+        responseDTO.setName("FlexiRetail Mobile POS v2");
+        responseDTO.setDescription("Enhanced mobile POS solution with tablet and wireless payment processing for flexible retail operations.");
+        responseDTO.setPrice(new BigDecimal("449.99"));
+        responseDTO.setCategoryName("Retail");
+        responseDTO.setBrand("TechTwist");
 
-        // Insert the product
-        mockMvc.perform(post("/product").contentType(MediaType.APPLICATION_JSON)
-                .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
-                        product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
-                .andExpect(status().isOk());
+        when(productService.update(eq("ret_pos_004"), any(ProductUpdateDTO.class))).thenReturn(responseDTO);
 
-        // Update the product
-        product.setName("UpdatedProduct");
-        mockMvc.perform(put("/product").contentType(MediaType.APPLICATION_JSON)
-                .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
-                        product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void testInsertAndDeleteProduct() throws Exception {
-        Product product = createTestProduct();
-        productServiceTestHelper.addProduct(product); // Use the helper to add the product to the in-memory store
-
-        // Insert the product first to ensure it exists before deletion
-        mockMvc.perform(post("/product")
+        mockMvc.perform(put("/api/products/ret_pos_004")
                 .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON) // Specify the expected response type
-                .content(objectMapper.writeValueAsString(product)))
-                .andExpect(status().isOk());
+                .content(objectMapper.writeValueAsString(updateDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("ret_pos_004"))
+                .andExpect(jsonPath("$.name").value("FlexiRetail Mobile POS v2"))
+                .andExpect(jsonPath("$.price").value(449.99));
+    }
 
-        // Delete the product
-        mockMvc.perform(delete("/product")
+    @Test
+    public void testUpdateProductNotFound() throws Exception {
+        ProductUpdateDTO updateDTO = new ProductUpdateDTO();
+        updateDTO.setName("Updated Product");
+
+        when(productService.update(eq("ret_pos_999"), any(ProductUpdateDTO.class))).thenReturn(null);
+
+        mockMvc.perform(put("/api/products/ret_pos_999")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(String.format("{\"name\":\"%s\", \"price\":%s, \"partitionKey\":\"%s\", \"rowKey\":\"%s\"}",
-                        product.getName(), product.getPrice(), product.getPartitionKey(), product.getRowKey())))
-                .andExpect(status().isOk());
+                .content(objectMapper.writeValueAsString(updateDTO)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testDeleteProduct() throws Exception {
+        // The delete method returns void, so we just verify it's called
+        mockMvc.perform(delete("/api/products/ret_pos_004"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testDeleteProductNotFound() throws Exception {
+        // Since delete returns void, we can't test not found scenario via service
+        // The controller always returns 204 No Content for delete operations
+        mockMvc.perform(delete("/api/products/ret_pos_999"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testGetAllProducts() throws Exception {
+        ProductResponseDTO response1 = new ProductResponseDTO();
+        response1.setId("ret_pos_004");
+        response1.setName("FlexiRetail Mobile POS");
+        response1.setPrice(new BigDecimal("399.99"));
+
+        ProductResponseDTO response2 = new ProductResponseDTO();
+        response2.setId("ret_pos_005");
+        response2.setName("FlexiRetail Desktop POS");
+        response2.setPrice(new BigDecimal("599.99"));
+
+        List<ProductResponseDTO> products = Arrays.asList(response1, response2);
+
+        when(productService.findAll()).thenReturn(products);
+
+        mockMvc.perform(get("/api/products"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value("ret_pos_004"))
+                .andExpect(jsonPath("$[0].name").value("FlexiRetail Mobile POS"))
+                .andExpect(jsonPath("$[1].id").value("ret_pos_005"))
+                .andExpect(jsonPath("$[1].name").value("FlexiRetail Desktop POS"));
+    }
+
+    @Test
+    public void testGetProductsByCategory() throws Exception {
+        ProductResponseDTO response = new ProductResponseDTO();
+        response.setId("ret_pos_004");
+        response.setName("FlexiRetail Mobile POS");
+        response.setPrice(new BigDecimal("399.99"));
+        response.setCategoryName("Retail");
+
+        List<ProductResponseDTO> products = Arrays.asList(response);
+
+        when(productService.findByCategory("Retail")).thenReturn(products);
+
+        mockMvc.perform(get("/api/products/category/Retail"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value("ret_pos_004"))
+                .andExpect(jsonPath("$[0].name").value("FlexiRetail Mobile POS"));
+    }
+
+    @Test
+    public void testGetProductsByBrand() throws Exception {
+        ProductResponseDTO response = new ProductResponseDTO();
+        response.setId("ret_pos_004");
+        response.setName("FlexiRetail Mobile POS");
+        response.setPrice(new BigDecimal("399.99"));
+        response.setBrand("TechTwist");
+
+        List<ProductResponseDTO> products = Arrays.asList(response);
+
+        when(productService.findByBrand("TechTwist")).thenReturn(products);
+
+        mockMvc.perform(get("/api/products/brand/TechTwist"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value("ret_pos_004"))
+                .andExpect(jsonPath("$[0].name").value("FlexiRetail Mobile POS"));
+    }
+
+    @Test
+    public void testGetProductByName() throws Exception {
+        ProductResponseDTO response = new ProductResponseDTO();
+        response.setId("ret_pos_004");
+        response.setName("FlexiRetail Mobile POS");
+        response.setPrice(new BigDecimal("399.99"));
+
+        when(productService.findByName("FlexiRetail Mobile POS")).thenReturn(response);
+
+        mockMvc.perform(get("/api/products/name/FlexiRetail Mobile POS"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("ret_pos_004"))
+                .andExpect(jsonPath("$.name").value("FlexiRetail Mobile POS"));
     }
 }

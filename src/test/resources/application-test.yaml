@@ -1,0 +1,17 @@
+spring:
+  profiles:
+    active: mongodb  # Activate mongodb profile to enable ProductRepository
+    include: mongodb
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: test_techtwist
+  autoconfigure:
+    exclude: []  # Don't exclude MongoDB auto-configuration for tests
+
+logging:
+  level:
+    org.springframework.boot.autoconfigure.mongo: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    de.flapdoodle.embed.mongo: INFO

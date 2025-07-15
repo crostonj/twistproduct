@@ -30,13 +30,36 @@ logging:
 
 # /workspaces/twistproduct/src/main/resources/Application.yaml
 spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  autoconfigure:
+    exclude: 
+      # Exclude MongoDB auto-configuration for local profile by default
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+
+---
+# Local development profile - uses InMemoryProductService
+spring:
+  config:
+    activate:
+      on-profile: local
+  autoconfigure:
+    exclude: 
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+
+---
+# MongoDB profile - uses MongoProductService
+spring:
+  config:
+    activate:
+      on-profile: mongodb
   data:
     mongodb:
-      # uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/techtwist?authSource=admin
-
-      host: ${MONGO_HOST}
-      port: ${MONGO_PORT}
-      username: ${MONGO_USERNAME}
-      password: ${MONGO_PASSWORD}
-      database: techtwist
-      authentication-database: admin # This corresponds to authSource=admin
+      host: ${MONGO_HOST:localhost}
+      port: ${MONGO_PORT:27017}
+      database: ${MONGO_DATABASE:techtwist}
+      username: ${MONGO_USERNAME:}
+      password: ${MONGO_PASSWORD:}
+      authentication-database: ${MONGO_AUTH_DB:admin}

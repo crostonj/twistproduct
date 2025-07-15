@@ -1,6 +1,6 @@
 package com.techtwist.controllers;
 
-import com.techtwist.models.Product;
+import com.techtwist.dto.*;
 import com.techtwist.services.interfaces.IProductService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,9 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/api/products")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @Tag(name = "Product", description = "Product API")
 public class ProductController {
@@ -27,25 +28,24 @@ public class ProductController {
 
     private final IProductService productService;
 
-    @Autowired // Constructor injection
+    @Autowired
     public ProductController(IProductService productService) {
         this.productService = productService;
     }
 
     @Operation(summary = "Create a new product",
-            description = "Create a new product")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The product to create", required = true)
+            description = "Create a new product using ProductCreateDTO")
     @PostMapping
-    public ResponseEntity<Product> create(@RequestBody Product product) {
+    public ResponseEntity<ProductResponseDTO> create(@RequestBody ProductCreateDTO createDTO) {
         try {
-            logger.debug("Received product: {}", product); // Log the incoming product
-            if (product == null || product.getPartitionKey() == null || product.getRowKey() == null) {
-                logger.error("Invalid product data: {}", product);
+            logger.debug("Creating product: {}", createDTO);
+            if (createDTO == null) {
+                logger.error("Invalid product data: null");
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid product data");
             }
-            Product createdProduct = productService.create(product);
-            logger.info("Product created successfully: {}", createdProduct);
-            return ResponseEntity.ok(createdProduct);
+            ProductResponseDTO createdProduct = productService.create(createDTO);
+            logger.info("Product created successfully with ID: {}", createdProduct.getId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
         } catch (ResponseStatusException e) {
             logger.error("Error creating product: {}", e.getMessage());
             throw e;
@@ -55,86 +55,86 @@ public class ProductController {
         }
     }
 
-    @Operation(summary = "Get a product by partitionKey and rowKey",
-            description = "Get a product by partitionKey and rowKey")
-    @Parameter(name = "partitionKey", description = "The partition key of the product")
-    @Parameter(name = "rowKey", description = "The row key of the product")
-    @GetMapping(value = "/{partitionKey}/{rowKey}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Product> get(
-            @PathVariable String partitionKey,
-            @PathVariable String rowKey) {
+    @Operation(summary = "Get a product by ID",
+            description = "Retrieve a product by its unique identifier")
+    @Parameter(name = "id", description = "The unique identifier of the product")
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ProductResponseDTO> getById(@PathVariable String id) {
         try {
-            Product product = productService.get(partitionKey, rowKey);
-            if (product == null) {
+            Optional<ProductResponseDTO> product = productService.findById(id);
+            if (product.isPresent()) {
+                return ResponseEntity.ok(product.get());
+            } else {
                 return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.ok(product);
         } catch (Exception e) {
-            logger.error("Error getting product by key", e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to read entity", e);
+            logger.error("Error getting product by ID: {}", id, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve product", e);
         }
     }
 
     @Operation(summary = "Get a product by name",
-            description = "Get a product by name")
+            description = "Retrieve a product by its name")
     @Parameter(name = "name", description = "The name of the product")
-    @GetMapping(value = "/name/{name}", produces = MediaType.APPLICATION_JSON_VALUE) // Changed path to avoid conflict with key-based get
-    public ResponseEntity<Product> getByName(
-            @PathVariable String name) {
+    @GetMapping(value = "/name/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ProductResponseDTO> getByName(@PathVariable String name) {
         try {
-            Product product = productService.getByName(name);
-            if (product == null) {
+            ProductResponseDTO product = productService.findByName(name);
+            if (product != null) {
+                return ResponseEntity.ok(product);
+            } else {
                 return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.ok(product);
         } catch (Exception e) {
-            logger.error("Error getting product by name", e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to read entity", e);
+            logger.error("Error getting product by name: {}", name, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve product", e);
         }
     }
 
     @Operation(summary = "Update a product",
-            description = "Update a product")
-    @Parameter(name = "product", description = "The product to update")
-    @PutMapping
-    public ResponseEntity<Product> update(@RequestBody Product product) {
+            description = "Update an existing product using ProductUpdateDTO")
+    @Parameter(name = "id", description = "The unique identifier of the product to update")
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductResponseDTO> update(@PathVariable String id, @RequestBody ProductUpdateDTO updateDTO) {
         try {
-            if (product == null || product.getPartitionKey() == null || product.getRowKey() == null) {
+            if (updateDTO == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid product data");
             }
-            Product updatedProduct = productService.update(product);
-            if (updatedProduct == null) {
-                return ResponseEntity.notFound().build(); // Or handle as appropriate if update implies existence
+            ProductResponseDTO updatedProduct = productService.update(id, updateDTO);
+            if (updatedProduct != null) {
+                return ResponseEntity.ok(updatedProduct);
+            } else {
+                return ResponseEntity.notFound().build();
             }
-            return ResponseEntity.ok(updatedProduct);
+        } catch (ResponseStatusException e) {
+            logger.error("Error updating product: {}", e.getMessage());
+            throw e;
         } catch (Exception e) {
-            logger.error("Error updating product", e);
+            logger.error("Error updating product with ID: {}", id, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update product", e);
         }
     }
 
     @Operation(summary = "Delete a product",
-            description = "Delete a product")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "The product to delete", required = true)
-    @DeleteMapping
-    public void delete(@RequestBody Product product) {
+            description = "Delete a product by its unique identifier")
+    @Parameter(name = "id", description = "The unique identifier of the product to delete")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
         try {
-            if (product == null || product.getPartitionKey() == null || product.getRowKey() == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid product data");
-            }
-            productService.delete(product);
+            productService.delete(id);
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            logger.error("Error deleting product", e);
+            logger.error("Error deleting product with ID: {}", id, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete product", e);
         }
     }
 
     @Operation(summary = "List all products",
-            description = "Retrieve a list of all products")
-    @GetMapping(value = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Product>> listAll() {
+            description = "Retrieve a list of all active products")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ProductResponseDTO>> listAll() {
         try {
-            List<Product> products = productService.List();
+            List<ProductResponseDTO> products = productService.findAll();
             if (products.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
@@ -142,6 +142,89 @@ public class ProductController {
         } catch (Exception e) {
             logger.error("Error retrieving product list", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve product list", e);
+        }
+    }
+
+    @Operation(summary = "Get product summaries",
+            description = "Retrieve a list of all active products in summary format (optimized for performance)")
+    @GetMapping(value = "/summaries", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ProductSummaryDTO>> getSummaries() {
+        try {
+            List<ProductSummaryDTO> summaries = productService.findAllSummary();
+            if (summaries.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(summaries);
+        } catch (Exception e) {
+            logger.error("Error retrieving product summaries", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve product summaries", e);
+        }
+    }
+
+    @Operation(summary = "Get products by category",
+            description = "Retrieve products filtered by category")
+    @Parameter(name = "category", description = "The category to filter by")
+    @GetMapping(value = "/category/{category}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ProductResponseDTO>> getByCategory(@PathVariable String category) {
+        try {
+            List<ProductResponseDTO> products = productService.findByCategory(category);
+            if (products.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            logger.error("Error retrieving products by category: {}", category, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve products", e);
+        }
+    }
+
+    @Operation(summary = "Get products by brand",
+            description = "Retrieve products filtered by brand")
+    @Parameter(name = "brand", description = "The brand to filter by")
+    @GetMapping(value = "/brand/{brand}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ProductResponseDTO>> getByBrand(@PathVariable String brand) {
+        try {
+            List<ProductResponseDTO> products = productService.findByBrand(brand);
+            if (products.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            logger.error("Error retrieving products by brand: {}", brand, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve products", e);
+        }
+    }
+
+    @Operation(summary = "Get products by product area",
+            description = "Retrieve products filtered by product area")
+    @Parameter(name = "productArea", description = "The product area to filter by")
+    @GetMapping(value = "/area/{productArea}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ProductResponseDTO>> getByProductArea(@PathVariable String productArea) {
+        try {
+            List<ProductResponseDTO> products = productService.findByProductArea(productArea);
+            if (products.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            logger.error("Error retrieving products by product area: {}", productArea, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve products", e);
+        }
+    }
+
+    @Operation(summary = "Get featured products",
+            description = "Retrieve all featured products")
+    @GetMapping(value = "/featured", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ProductResponseDTO>> getFeaturedProducts() {
+        try {
+            List<ProductResponseDTO> products = productService.findFeaturedProducts();
+            if (products.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            logger.error("Error retrieving featured products", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve featured products", e);
         }
     }
 }

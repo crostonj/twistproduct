@@ -1,4 +1,4 @@
-package com.techtwist.model;
+package com.techtwist.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;

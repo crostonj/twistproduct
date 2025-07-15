@@ -1,5 +1,6 @@
 package com.techtwist.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Map;
  * DTO for updating existing products
  * All fields are optional for partial updates
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductUpdateDTO {
 
     private String name;

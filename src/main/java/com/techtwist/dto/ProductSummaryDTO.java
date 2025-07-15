@@ -72,4 +72,16 @@ public class ProductSummaryDTO {
     
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    @Override
+    public String toString() {
+        return "ProductSummaryDTO{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", brand='" + brand + '\'' +
+                ", price=" + price +
+                ", stockQuantity=" + stockQuantity +
+                ", status='" + status + '\'' +
+                '}';
+    }
 }

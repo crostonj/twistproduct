@@ -42,7 +42,7 @@ public class ProductResponseDTO {
 
     @JsonProperty("stockStatus")
     public String getStockStatus() {
-        if (stockQuantity == null || stockQuantity == 0) {
+        if (stockQuantity == null || stockQuantity <= 0) {
             return "OUT_OF_STOCK";
         } else if (stockQuantity < 5) {
             return "LOW_STOCK";
@@ -122,4 +122,16 @@ public class ProductResponseDTO {
     
     public String getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+
+    @Override
+    public String toString() {
+        return "ProductResponseDTO{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", brand='" + brand + '\'' +
+                ", price=" + price +
+                ", stockQuantity=" + stockQuantity +
+                ", status='" + status + '\'' +
+                '}';
+    }
 }

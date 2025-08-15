@@ -1,0 +1,423 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:8080/product
+  description: Generated server url
+tags:
+- name: Product
+  description: Product API
+paths:
+  /api/products/{id}:
+    get:
+      tags:
+      - Product
+      summary: Get a product by ID
+      description: Retrieve a product by its unique identifier
+      operationId: getById
+      parameters:
+      - name: id
+        in: path
+        description: The unique identifier of the product
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponseDTO"
+    put:
+      tags:
+      - Product
+      summary: Update a product
+      description: Update an existing product using ProductUpdateDTO
+      operationId: update
+      parameters:
+      - name: id
+        in: path
+        description: The unique identifier of the product to update
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdateDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProductResponseDTO"
+    delete:
+      tags:
+      - Product
+      summary: Delete a product
+      description: Delete a product by its unique identifier
+      operationId: delete
+      parameters:
+      - name: id
+        in: path
+        description: The unique identifier of the product to delete
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+  /api/products:
+    get:
+      tags:
+      - Product
+      summary: List all products
+      description: Retrieve a list of all active products
+      operationId: listAll
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductResponseDTO"
+    post:
+      tags:
+      - Product
+      summary: Create a new product
+      description: Create a new product using ProductCreateDTO
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreateDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProductResponseDTO"
+  /api/products/summaries:
+    get:
+      tags:
+      - Product
+      summary: Get product summaries
+      description: Retrieve a list of all active products in summary format (optimized
+        for performance)
+      operationId: getSummaries
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductSummaryDTO"
+  /api/products/name/{name}:
+    get:
+      tags:
+      - Product
+      summary: Get a product by name
+      description: Retrieve a product by its name
+      operationId: getByName
+      parameters:
+      - name: name
+        in: path
+        description: The name of the product
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponseDTO"
+  /api/products/featured:
+    get:
+      tags:
+      - Product
+      summary: Get featured products
+      description: Retrieve all featured products
+      operationId: getFeaturedProducts
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductResponseDTO"
+  /api/products/category/{category}:
+    get:
+      tags:
+      - Product
+      summary: Get products by category
+      description: Retrieve products filtered by category
+      operationId: getByCategory
+      parameters:
+      - name: category
+        in: path
+        description: The category to filter by
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductResponseDTO"
+  /api/products/brand/{brand}:
+    get:
+      tags:
+      - Product
+      summary: Get products by brand
+      description: Retrieve products filtered by brand
+      operationId: getByBrand
+      parameters:
+      - name: brand
+        in: path
+        description: The brand to filter by
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductResponseDTO"
+  /api/products/area/{productArea}:
+    get:
+      tags:
+      - Product
+      summary: Get products by product area
+      description: Retrieve products filtered by product area
+      operationId: getByProductArea
+      parameters:
+      - name: productArea
+        in: path
+        description: The product area to filter by
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductResponseDTO"
+components:
+  schemas:
+    ProductUpdateDTO:
+      type: object
+      properties:
+        name:
+          type: string
+        brand:
+          type: string
+        price:
+          type: number
+        description:
+          type: string
+        imageUrl:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        specifications:
+          type: object
+          additionalProperties:
+            type: string
+        category:
+          type: string
+        stockQuantity:
+          type: integer
+          format: int32
+        sku:
+          type: string
+        status:
+          type: string
+        featured:
+          type: boolean
+        weight:
+          type: number
+          format: double
+        dimensions:
+          type: string
+        warranty:
+          type: string
+        manufacturer:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        categoryName:
+          type: string
+        productArea:
+          type: string
+        productAreaName:
+          type: string
+    ProductResponseDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+        price:
+          type: number
+        description:
+          type: string
+        imageUrl:
+          type: string
+        category:
+          type: string
+        categoryName:
+          type: string
+        productArea:
+          type: string
+        productAreaName:
+          type: string
+        stockQuantity:
+          type: integer
+          format: int32
+        sku:
+          type: string
+        status:
+          type: string
+        featured:
+          type: boolean
+        weight:
+          type: number
+          format: double
+        dimensions:
+          type: string
+        warranty:
+          type: string
+        manufacturer:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        specifications:
+          type: object
+          additionalProperties:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        inStock:
+          type: boolean
+        stockStatus:
+          type: string
+    ProductCreateDTO:
+      type: object
+      properties:
+        name:
+          type: string
+        brand:
+          type: string
+        price:
+          type: number
+        description:
+          type: string
+        imageUrl:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        specifications:
+          type: object
+          additionalProperties:
+            type: string
+        category:
+          type: string
+        stockQuantity:
+          type: integer
+          format: int32
+        sku:
+          type: string
+        status:
+          type: string
+        featured:
+          type: boolean
+        weight:
+          type: number
+          format: double
+        dimensions:
+          type: string
+        warranty:
+          type: string
+        manufacturer:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        categoryName:
+          type: string
+        productArea:
+          type: string
+        productAreaName:
+          type: string
+    ProductSummaryDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+        price:
+          type: number
+        imageUrl:
+          type: string
+        category:
+          type: string
+        categoryName:
+          type: string
+        stockQuantity:
+          type: integer
+          format: int32
+        featured:
+          type: boolean
+        status:
+          type: string
+        inStock:
+          type: boolean

@@ -89,8 +89,8 @@ mongo:
   enabled: true
   host: lab-master # Replace with your MongoDB host
   port: 27017 # Replace with your MongoDB port
-  username: jeff # Replace with your MongoDB username
-  password: mypassword # Replace with your MongoDB password
+  username: admin # Replace with your MongoDB username
+  password: flagators # Replace with your MongoDB password
 
   
 # Node selector for scheduling pods
